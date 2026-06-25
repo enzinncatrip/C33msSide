@@ -1,0 +1,333 @@
+-- ======================================================
+--  POPCAT GUI - Versão Melhorada
+--  Autor: (seu nome)
+--  Descrição: Interface completa com abas, drag, minimizar,
+--  efeito de brilho e animações.
+-- ======================================================
+
+local Player = game:GetService("Players").LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local gui = script.Parent
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+
+-- ======================================================
+--  CONFIGURAÇÕES
+-- ======================================================
+local CONFIG = {
+    Colors = {
+        Background = Color3.fromRGB(18, 18, 18),
+        Sidebar = Color3.fromRGB(23, 23, 23),
+        TopBar = Color3.fromRGB(28, 28, 28),
+        PageBg = Color3.fromRGB(15, 15, 15),
+        Accent = Color3.fromRGB(255, 80, 180),
+        AccentLight = Color3.fromRGB(255, 120, 210),
+        ButtonBg = Color3.fromRGB(35, 35, 35),
+        CloseBg = Color3.fromRGB(255, 70, 70),
+        CloseHover = Color3.fromRGB(200, 50, 50),
+        MinimizeBg = Color3.fromRGB(70, 70, 255),
+        MinimizeHover = Color3.fromRGB(50, 50, 200),
+    },
+    Tabs = {"Home", "Player", "Powers", "Visual", "Settings", "Credits"},
+    MainSize = UDim2.new(0, 900, 0, 520),
+    SidebarWidth = 180,
+    TopHeight = 50,
+}
+
+-- ======================================================
+--  FUNÇÕES AUXILIARES
+-- ======================================================
+local function CreateCorner(instance, radius)
+    local corner = Instance.new("UICorner")
+    corner.Parent = instance
+    corner.CornerRadius = radius or UDim.new(0, 12)
+    return corner
+end
+
+local function CreateStroke(instance, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = instance
+    stroke.Color = color or CONFIG.Colors.Accent
+    stroke.Thickness = thickness or 3
+    return stroke
+end
+
+local function CreateTextLabel(parent, text, size, position, color, font, scalemode)
+    local label = Instance.new("TextLabel")
+    label.Parent = parent
+    label.BackgroundTransparency = 1
+    label.Size = size or UDim2.new(1, 0, 1, 0)
+    label.Position = position or UDim2.new(0, 0, 0, 0)
+    label.Text = text or ""
+    label.Font = font or Enum.Font.GothamBold
+    label.TextScaled = scalemode or true
+    label.TextColor3 = color or Color3.new(1, 1, 1)
+    return label
+end
+
+-- ======================================================
+--  CRIAÇÃO DA JANELA PRINCIPAL
+-- ======================================================
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = CONFIG.MainSize
+Main.Position = UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.MainSize.Y.Offset/2)
+Main.BackgroundColor3 = CONFIG.Colors.Background
+Main.BorderSizePixel = 0
+Main.Parent = gui
+
+CreateCorner(Main)
+local MainStroke = CreateStroke(Main, CONFIG.Colors.Accent, 3)
+
+-- ======================================================
+--  TOPBAR (título, fechar, minimizar, popcat)
+-- ======================================================
+local Top = Instance.new("Frame")
+Top.Parent = Main
+Top.Size = UDim2.new(1, 0, 0, CONFIG.TopHeight)
+Top.BackgroundColor3 = CONFIG.Colors.TopBar
+Top.BorderSizePixel = 0
+CreateCorner(Top, UDim.new(0, 12))
+
+-- Título
+local Title = CreateTextLabel(Top, "POPCAT GUI", UDim2.new(1, 0, 1, 0), nil, CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
+Title.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Popcat (ícone)
+local Cat = Instance.new("ImageLabel")
+Cat.Name = "Popcat"
+Cat.Parent = Top
+Cat.BackgroundTransparency = 1
+Cat.Size = UDim2.new(0, 55, 0, 55)
+Cat.Position = UDim2.new(1, -145, -0.05, 0)
+Cat.Image = "rbxassetid://123564975653468"  -- Substitua pelo seu ID
+Cat.ScaleType = Enum.ScaleType.Fit
+
+-- Botão Fechar
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = Top
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -40, 0, 10)
+CloseBtn.BackgroundColor3 = CONFIG.Colors.CloseBg
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextScaled = true
+CloseBtn.AutoButtonColor = false
+CreateCorner(CloseBtn, UDim.new(1, 0))
+
+CloseBtn.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+-- Botão Minimizar
+local MinBtn = Instance.new("TextButton")
+MinBtn.Parent = Top
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -80, 0, 10)
+MinBtn.BackgroundColor3 = CONFIG.Colors.MinimizeBg
+MinBtn.Text = "−"
+MinBtn.TextColor3 = Color3.new(1, 1, 1)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextScaled = true
+MinBtn.AutoButtonColor = false
+CreateCorner(MinBtn, UDim.new(1, 0))
+
+local isMinimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    local targetSize = isMinimized and UDim2.new(0, CONFIG.MainSize.X.Offset, 0, CONFIG.TopHeight + 10) or CONFIG.MainSize
+    local targetPos = isMinimized and UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.TopHeight/2) or UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.MainSize.Y.Offset/2)
+    TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = targetSize,
+        Position = targetPos
+    }):Play()
+end)
+
+-- ======================================================
+--  SIDEBAR (abas)
+-- ======================================================
+local Sidebar = Instance.new("Frame")
+Sidebar.Parent = Main
+Sidebar.Position = UDim2.new(0, 0, 0, CONFIG.TopHeight)
+Sidebar.Size = UDim2.new(0, CONFIG.SidebarWidth, 1, -CONFIG.TopHeight)
+Sidebar.BackgroundColor3 = CONFIG.Colors.Sidebar
+Sidebar.BorderSizePixel = 0
+
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Parent = Sidebar
+SidebarLayout.Padding = UDim.new(0, 8)
+SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.Parent = Sidebar
+SidebarPadding.PaddingTop = UDim.new(0, 12)
+
+-- ======================================================
+--  PÁGINAS (conteúdo)
+-- ======================================================
+local Pages = Instance.new("Frame")
+Pages.Parent = Main
+Pages.Position = UDim2.new(0, CONFIG.SidebarWidth + 5, 0, CONFIG.TopHeight + 5)
+Pages.Size = UDim2.new(1, -CONFIG.SidebarWidth - 15, 1, -CONFIG.TopHeight - 15)
+Pages.BackgroundColor3 = CONFIG.Colors.PageBg
+Pages.BorderSizePixel = 0
+CreateCorner(Pages, UDim.new(0, 10))
+
+-- ======================================================
+--  CRIAÇÃO DAS ABAS E PÁGINAS
+-- ======================================================
+local CurrentPage = nil
+local AllButtons = {}
+
+-- Função para criar conteúdo de exemplo em cada página
+local function CreatePageContent(page, tabName)
+    local title = CreateTextLabel(page, tabName, UDim2.new(1, 0, 0, 50), UDim2.new(0, 10, 0.05, 0), CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
+
+    -- Exemplo de conteúdo adicional
+    if tabName == "Home" then
+        local desc = CreateTextLabel(page, "Bem-vindo ao Popcat GUI!\nClique nas abas ao lado para navegar.", 
+            UDim2.new(1, -20, 0, 80), UDim2.new(0, 10, 0.15, 0), Color3.new(1, 1, 1), Enum.Font.Gotham)
+        desc.TextScaled = false
+        desc.TextSize = 20
+        desc.TextWrapped = true
+    elseif tabName == "Player" then
+        -- Exemplo de toggle
+        local toggle = Instance.new("TextButton")
+        toggle.Parent = page
+        toggle.Size = UDim2.new(0, 200, 0, 40)
+        toggle.Position = UDim2.new(0, 10, 0.2, 0)
+        toggle.BackgroundColor3 = CONFIG.Colors.ButtonBg
+        toggle.Text = "Ativar Modo Deus"
+        toggle.TextColor3 = Color3.new(1, 1, 1)
+        toggle.Font = Enum.Font.GothamBold
+        toggle.TextScaled = true
+        CreateCorner(toggle, UDim.new(0, 8))
+        local stroke = CreateStroke(toggle, CONFIG.Colors.Accent, 2)
+        local active = false
+        toggle.MouseButton1Click:Connect(function()
+            active = not active
+            toggle.BackgroundColor3 = active and CONFIG.Colors.Accent or CONFIG.Colors.ButtonBg
+            toggle.Text = active and "✅ Ativado" or "Ativar Modo Deus"
+        end)
+    end
+    -- Adicione mais conteúdo para outras abas conforme necessário
+end
+
+-- Loop para criar botões e páginas
+for _, tabName in ipairs(CONFIG.Tabs) do
+    -- Botão na sidebar
+    local btn = Instance.new("TextButton")
+    btn.Parent = Sidebar
+    btn.Size = UDim2.new(0.9, 0, 0, 42)
+    btn.BackgroundColor3 = CONFIG.Colors.ButtonBg
+    btn.Text = tabName
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    btn.TextColor3 = CONFIG.Colors.AccentLight
+    btn.AutoButtonColor = false
+    CreateCorner(btn, UDim.new(0, 8))
+    local btnStroke = CreateStroke(btn, CONFIG.Colors.Accent, 2)
+
+    -- Página correspondente
+    local page = Instance.new("Frame")
+    page.Name = tabName
+    page.Parent = Pages
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.Visible = (tabName == "Home")
+
+    if tabName == "Home" then CurrentPage = page end
+
+    CreatePageContent(page, tabName)
+
+    -- Efeitos hover
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = CONFIG.Colors.Accent
+        }):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = CONFIG.Colors.ButtonBg
+        }):Play()
+    end)
+
+    -- Clique para trocar página
+    btn.MouseButton1Click:Connect(function()
+        -- Esconde todas
+        for _, child in ipairs(Pages:GetChildren()) do
+            if child:IsA("Frame") then
+                child.Visible = false
+            end
+        end
+        page.Visible = true
+        CurrentPage = page
+    end)
+
+    AllButtons[tabName] = btn
+end
+
+-- ======================================================
+--  SISTEMA DE DRAG (arrastar)
+-- ======================================================
+local dragging = false
+local dragStart, startPos, dragInput
+
+Top.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+    end
+end)
+
+Top.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- ======================================================
+--  ATALHO DE TECLADO (F1) PARA ABRIR/FECHAR
+-- ======================================================
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.F1 then
+        gui.Enabled = not gui.Enabled
+    end
+end)
+
+-- ======================================================
+--  EFEITO GLOW DINÂMICO (otimizado com Heartbeat)
+-- ======================================================
+local hue = 0
+RunService.Heartbeat:Connect(function()
+    hue = (hue + 0.002) % 1
+    local color = Color3.fromHSV(0.9, 0.65, 1)
+    MainStroke.Color = color
+    MainStroke.Thickness = 3 + math.sin(tick() * 4) * 0.7
+end)
+
+-- ======================================================
+--  INICIALIZAÇÃO: ABRE A PRIMEIRA PÁGINA
+-- ======================================================
+OpenPage("Home") -- garantia
+
+print("Popcat GUI carregada com sucesso!")
