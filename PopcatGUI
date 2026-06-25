@@ -1,19 +1,20 @@
 -- ======================================================
---  POPCAT GUI - Versão Melhorada
---  Autor: (seu nome)
---  Descrição: Interface completa com abas, drag, minimizar,
---  efeito de brilho e animações.
+--  POPCAT GUI - Versão para LoadString
+--  Suporte a execução remota
 -- ======================================================
 
 local Player = game:GetService("Players").LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PopcatGUI"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = PlayerGui
+
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-
-local gui = script.Parent
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
 
 -- ======================================================
 --  CONFIGURAÇÕES
@@ -84,7 +85,7 @@ CreateCorner(Main)
 local MainStroke = CreateStroke(Main, CONFIG.Colors.Accent, 3)
 
 -- ======================================================
---  TOPBAR (título, fechar, minimizar, popcat)
+--  TOPBAR
 -- ======================================================
 local Top = Instance.new("Frame")
 Top.Parent = Main
@@ -93,7 +94,6 @@ Top.BackgroundColor3 = CONFIG.Colors.TopBar
 Top.BorderSizePixel = 0
 CreateCorner(Top, UDim.new(0, 12))
 
--- Título
 local Title = CreateTextLabel(Top, "POPCAT GUI", UDim2.new(1, 0, 1, 0), nil, CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
 Title.TextXAlignment = Enum.TextXAlignment.Center
 
@@ -104,7 +104,7 @@ Cat.Parent = Top
 Cat.BackgroundTransparency = 1
 Cat.Size = UDim2.new(0, 55, 0, 55)
 Cat.Position = UDim2.new(1, -145, -0.05, 0)
-Cat.Image = "rbxassetid://123564975653468"  -- Substitua pelo seu ID
+Cat.Image = "rbxassetid://123564975653468"  -- Substitua se necessário
 Cat.ScaleType = Enum.ScaleType.Fit
 
 -- Botão Fechar
@@ -149,7 +149,7 @@ MinBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ======================================================
---  SIDEBAR (abas)
+--  SIDEBAR
 -- ======================================================
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = Main
@@ -168,7 +168,7 @@ SidebarPadding.Parent = Sidebar
 SidebarPadding.PaddingTop = UDim.new(0, 12)
 
 -- ======================================================
---  PÁGINAS (conteúdo)
+--  PÁGINAS
 -- ======================================================
 local Pages = Instance.new("Frame")
 Pages.Parent = Main
@@ -182,13 +182,9 @@ CreateCorner(Pages, UDim.new(0, 10))
 --  CRIAÇÃO DAS ABAS E PÁGINAS
 -- ======================================================
 local CurrentPage = nil
-local AllButtons = {}
 
--- Função para criar conteúdo de exemplo em cada página
 local function CreatePageContent(page, tabName)
     local title = CreateTextLabel(page, tabName, UDim2.new(1, 0, 0, 50), UDim2.new(0, 10, 0.05, 0), CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
-
-    -- Exemplo de conteúdo adicional
     if tabName == "Home" then
         local desc = CreateTextLabel(page, "Bem-vindo ao Popcat GUI!\nClique nas abas ao lado para navegar.", 
             UDim2.new(1, -20, 0, 80), UDim2.new(0, 10, 0.15, 0), Color3.new(1, 1, 1), Enum.Font.Gotham)
@@ -196,7 +192,6 @@ local function CreatePageContent(page, tabName)
         desc.TextSize = 20
         desc.TextWrapped = true
     elseif tabName == "Player" then
-        -- Exemplo de toggle
         local toggle = Instance.new("TextButton")
         toggle.Parent = page
         toggle.Size = UDim2.new(0, 200, 0, 40)
@@ -215,12 +210,9 @@ local function CreatePageContent(page, tabName)
             toggle.Text = active and "✅ Ativado" or "Ativar Modo Deus"
         end)
     end
-    -- Adicione mais conteúdo para outras abas conforme necessário
 end
 
--- Loop para criar botões e páginas
 for _, tabName in ipairs(CONFIG.Tabs) do
-    -- Botão na sidebar
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
     btn.Size = UDim2.new(0.9, 0, 0, 42)
@@ -233,19 +225,16 @@ for _, tabName in ipairs(CONFIG.Tabs) do
     CreateCorner(btn, UDim.new(0, 8))
     local btnStroke = CreateStroke(btn, CONFIG.Colors.Accent, 2)
 
-    -- Página correspondente
     local page = Instance.new("Frame")
     page.Name = tabName
     page.Parent = Pages
     page.Size = UDim2.new(1, 0, 1, 0)
     page.BackgroundTransparency = 1
     page.Visible = (tabName == "Home")
-
     if tabName == "Home" then CurrentPage = page end
 
     CreatePageContent(page, tabName)
 
-    -- Efeitos hover
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.15), {
             BackgroundColor3 = CONFIG.Colors.Accent
@@ -257,9 +246,7 @@ for _, tabName in ipairs(CONFIG.Tabs) do
         }):Play()
     end)
 
-    -- Clique para trocar página
     btn.MouseButton1Click:Connect(function()
-        -- Esconde todas
         for _, child in ipairs(Pages:GetChildren()) do
             if child:IsA("Frame") then
                 child.Visible = false
@@ -268,12 +255,10 @@ for _, tabName in ipairs(CONFIG.Tabs) do
         page.Visible = true
         CurrentPage = page
     end)
-
-    AllButtons[tabName] = btn
 end
 
 -- ======================================================
---  SISTEMA DE DRAG (arrastar)
+--  DRAG
 -- ======================================================
 local dragging = false
 local dragStart, startPos, dragInput
@@ -305,7 +290,7 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 -- ======================================================
---  ATALHO DE TECLADO (F1) PARA ABRIR/FECHAR
+--  ATALHO TECLADO
 -- ======================================================
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
@@ -315,19 +300,13 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- ======================================================
---  EFEITO GLOW DINÂMICO (otimizado com Heartbeat)
+--  GLOW
 -- ======================================================
 local hue = 0
 RunService.Heartbeat:Connect(function()
     hue = (hue + 0.002) % 1
-    local color = Color3.fromHSV(0.9, 0.65, 1)
-    MainStroke.Color = color
+    MainStroke.Color = Color3.fromHSV(0.9, 0.65, 1)
     MainStroke.Thickness = 3 + math.sin(tick() * 4) * 0.7
 end)
-
--- ======================================================
---  INICIALIZAÇÃO: ABRE A PRIMEIRA PÁGINA
--- ======================================================
-OpenPage("Home") -- garantia
 
 print("Popcat GUI carregada com sucesso!")
