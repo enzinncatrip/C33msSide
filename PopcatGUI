@@ -1,151 +1,206 @@
 -- ======================================================
---  POPCAT GUI - Versão para LoadString
---  Suporte a execução remota
+--  🐱 POPCAT GUI - ULTRA COMPLETA
+--  Com temas, animações, sliders, notificações e muito mais!
+--  Tecla F1 para abrir/fechar
 -- ======================================================
 
+if getgenv().PopcatGUI_Loaded then
+    return
+end
+getgenv().PopcatGUI_Loaded = true
+
+-- ======================================================
+--  CONFIGURAÇÕES INICIAIS
+-- ======================================================
 local Player = game:GetService("Players").LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "PopcatGUI"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.Parent = PlayerGui
-
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+-- 🔧 Configurações salvas (simulando DataStore)
+local Settings = {
+    Theme = "Dark", -- "Dark" | "Light" | "Neon"
+    Minimized = false,
+}
 
 -- ======================================================
---  CONFIGURAÇÕES
+--  PALETAS DE CORES (TEMAS)
 -- ======================================================
-local CONFIG = {
-    Colors = {
-        Background = Color3.fromRGB(18, 18, 18),
-        Sidebar = Color3.fromRGB(23, 23, 23),
-        TopBar = Color3.fromRGB(28, 28, 28),
-        PageBg = Color3.fromRGB(15, 15, 15),
-        Accent = Color3.fromRGB(255, 80, 180),
-        AccentLight = Color3.fromRGB(255, 120, 210),
-        ButtonBg = Color3.fromRGB(35, 35, 35),
-        CloseBg = Color3.fromRGB(255, 70, 70),
-        CloseHover = Color3.fromRGB(200, 50, 50),
-        MinimizeBg = Color3.fromRGB(70, 70, 255),
-        MinimizeHover = Color3.fromRGB(50, 50, 200),
+local Themes = {
+    Dark = {
+        BG = Color3.fromRGB(18,18,18),
+        Sidebar = Color3.fromRGB(23,23,23),
+        Top = Color3.fromRGB(28,28,28),
+        Page = Color3.fromRGB(15,15,15),
+        Button = Color3.fromRGB(35,35,35),
+        Text = Color3.fromRGB(255,255,255),
+        Accent = Color3.fromRGB(255,80,180),
+        AccentLight = Color3.fromRGB(255,120,210),
+        Close = Color3.fromRGB(255,70,70),
+        Min = Color3.fromRGB(70,70,255),
+        Stroke = Color3.fromRGB(255,80,180),
     },
-    Tabs = {"Home", "Player", "Powers", "Visual", "Settings", "Credits"},
-    MainSize = UDim2.new(0, 900, 0, 520),
-    SidebarWidth = 180,
-    TopHeight = 50,
+    Light = {
+        BG = Color3.fromRGB(240,240,240),
+        Sidebar = Color3.fromRGB(230,230,230),
+        Top = Color3.fromRGB(220,220,220),
+        Page = Color3.fromRGB(245,245,245),
+        Button = Color3.fromRGB(210,210,210),
+        Text = Color3.fromRGB(30,30,30),
+        Accent = Color3.fromRGB(0,120,255),
+        AccentLight = Color3.fromRGB(0,150,255),
+        Close = Color3.fromRGB(200,50,50),
+        Min = Color3.fromRGB(50,50,200),
+        Stroke = Color3.fromRGB(0,120,255),
+    },
+    Neon = {
+        BG = Color3.fromRGB(10,10,30),
+        Sidebar = Color3.fromRGB(15,15,40),
+        Top = Color3.fromRGB(20,20,50),
+        Page = Color3.fromRGB(8,8,25),
+        Button = Color3.fromRGB(25,25,60),
+        Text = Color3.fromRGB(0,255,255),
+        Accent = Color3.fromRGB(0,255,200),
+        AccentLight = Color3.fromRGB(100,255,200),
+        Close = Color3.fromRGB(255,0,100),
+        Min = Color3.fromRGB(0,200,255),
+        Stroke = Color3.fromRGB(0,255,200),
+    }
 }
 
 -- ======================================================
 --  FUNÇÕES AUXILIARES
 -- ======================================================
 local function CreateCorner(instance, radius)
-    local corner = Instance.new("UICorner")
-    corner.Parent = instance
-    corner.CornerRadius = radius or UDim.new(0, 12)
-    return corner
+    local c = Instance.new("UICorner")
+    c.Parent = instance
+    c.CornerRadius = radius or UDim.new(0, 12)
+    return c
 end
 
 local function CreateStroke(instance, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Parent = instance
-    stroke.Color = color or CONFIG.Colors.Accent
-    stroke.Thickness = thickness or 3
-    return stroke
+    local s = Instance.new("UIStroke")
+    s.Parent = instance
+    s.Color = color or Color3.fromRGB(255,80,180)
+    s.Thickness = thickness or 3
+    return s
 end
 
-local function CreateTextLabel(parent, text, size, position, color, font, scalemode)
-    local label = Instance.new("TextLabel")
-    label.Parent = parent
-    label.BackgroundTransparency = 1
-    label.Size = size or UDim2.new(1, 0, 1, 0)
-    label.Position = position or UDim2.new(0, 0, 0, 0)
-    label.Text = text or ""
-    label.Font = font or Enum.Font.GothamBold
-    label.TextScaled = scalemode or true
-    label.TextColor3 = color or Color3.new(1, 1, 1)
-    return label
+local function CreateLabel(parent, text, size, pos, color, font, scale)
+    local l = Instance.new("TextLabel")
+    l.Parent = parent
+    l.BackgroundTransparency = 1
+    l.Size = size or UDim2.new(1,0,1,0)
+    l.Position = pos or UDim2.new(0,0,0,0)
+    l.Text = text or ""
+    l.TextColor3 = color or Color3.new(1,1,1)
+    l.Font = font or Enum.Font.GothamBold
+    l.TextScaled = scale or true
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    return l
 end
 
 -- ======================================================
---  CRIAÇÃO DA JANELA PRINCIPAL
+--  CRIAÇÃO DA GUI
 -- ======================================================
+local gui = Instance.new("ScreenGui")
+gui.Name = "PopcatGUI"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = PlayerGui
+
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = CONFIG.MainSize
-Main.Position = UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.MainSize.Y.Offset/2)
-Main.BackgroundColor3 = CONFIG.Colors.Background
+Main.Size = UDim2.new(0, 950, 0, 580)
+Main.Position = UDim2.new(0.5, -475, 0.5, -290)
+Main.BackgroundColor3 = Themes.Dark.BG
 Main.BorderSizePixel = 0
 Main.Parent = gui
+Main.ClipsDescendants = true
 
-CreateCorner(Main)
-local MainStroke = CreateStroke(Main, CONFIG.Colors.Accent, 3)
+local mainCorner = CreateCorner(Main)
+local mainStroke = CreateStroke(Main, Themes.Dark.Stroke, 3)
 
 -- ======================================================
 --  TOPBAR
 -- ======================================================
 local Top = Instance.new("Frame")
 Top.Parent = Main
-Top.Size = UDim2.new(1, 0, 0, CONFIG.TopHeight)
-Top.BackgroundColor3 = CONFIG.Colors.TopBar
+Top.Size = UDim2.new(1,0,0,55)
+Top.BackgroundColor3 = Themes.Dark.Top
 Top.BorderSizePixel = 0
-CreateCorner(Top, UDim.new(0, 12))
+CreateCorner(Top, UDim.new(0,12))
 
-local Title = CreateTextLabel(Top, "POPCAT GUI", UDim2.new(1, 0, 1, 0), nil, CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
+local Title = CreateLabel(Top, "🐱 POPCAT GUI", UDim2.new(1,0,1,0), nil, Themes.Dark.AccentLight, Enum.Font.GothamBlack)
 Title.TextXAlignment = Enum.TextXAlignment.Center
-
--- Popcat (ícone)
-local Cat = Instance.new("ImageLabel")
-Cat.Name = "Popcat"
-Cat.Parent = Top
-Cat.BackgroundTransparency = 1
-Cat.Size = UDim2.new(0, 55, 0, 55)
-Cat.Position = UDim2.new(1, -145, -0.05, 0)
-Cat.Image = "rbxassetid://123564975653468"  -- Substitua se necessário
-Cat.ScaleType = Enum.ScaleType.Fit
 
 -- Botão Fechar
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = Top
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -40, 0, 10)
-CloseBtn.BackgroundColor3 = CONFIG.Colors.CloseBg
+CloseBtn.Size = UDim2.new(0,32,0,32)
+CloseBtn.Position = UDim2.new(1,-42,0,11)
+CloseBtn.BackgroundColor3 = Themes.Dark.Close
 CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.TextColor3 = Color3.new(1,1,1)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextScaled = true
 CloseBtn.AutoButtonColor = false
-CreateCorner(CloseBtn, UDim.new(1, 0))
-
-CloseBtn.MouseButton1Click:Connect(function()
-    gui.Enabled = false
-end)
+CreateCorner(CloseBtn, UDim.new(1,0))
+CloseBtn.MouseButton1Click:Connect(function() gui.Enabled = false end)
 
 -- Botão Minimizar
 local MinBtn = Instance.new("TextButton")
 MinBtn.Parent = Top
-MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -80, 0, 10)
-MinBtn.BackgroundColor3 = CONFIG.Colors.MinimizeBg
+MinBtn.Size = UDim2.new(0,32,0,32)
+MinBtn.Position = UDim2.new(1,-84,0,11)
+MinBtn.BackgroundColor3 = Themes.Dark.Min
 MinBtn.Text = "−"
-MinBtn.TextColor3 = Color3.new(1, 1, 1)
+MinBtn.TextColor3 = Color3.new(1,1,1)
 MinBtn.Font = Enum.Font.GothamBold
 MinBtn.TextScaled = true
 MinBtn.AutoButtonColor = false
-CreateCorner(MinBtn, UDim.new(1, 0))
+CreateCorner(MinBtn, UDim.new(1,0))
 
-local isMinimized = false
+local isMinimized = Settings.Minimized
 MinBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    local targetSize = isMinimized and UDim2.new(0, CONFIG.MainSize.X.Offset, 0, CONFIG.TopHeight + 10) or CONFIG.MainSize
-    local targetPos = isMinimized and UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.TopHeight/2) or UDim2.new(0.5, -CONFIG.MainSize.X.Offset/2, 0.5, -CONFIG.MainSize.Y.Offset/2)
-    TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Settings.Minimized = isMinimized
+    local targetSize = isMinimized and UDim2.new(0,950,0,65) or UDim2.new(0,950,0,580)
+    local targetPos = isMinimized and UDim2.new(0.5,-475,0.5,-32) or UDim2.new(0.5,-475,0.5,-290)
+    TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
         Size = targetSize,
         Position = targetPos
     }):Play()
+end)
+
+-- Ícone do gato (Popcat)
+local Cat = Instance.new("ImageLabel")
+Cat.Parent = Top
+Cat.BackgroundTransparency = 1
+Cat.Size = UDim2.new(0,60,0,60)
+Cat.Position = UDim2.new(1,-160,-0.05,0)
+Cat.Image = "rbxassetid://123564975653468" -- Substitua pelo seu ID
+Cat.ScaleType = Enum.ScaleType.Fit
+
+-- Botão de trocar tema (no canto direito do título)
+local ThemeBtn = Instance.new("TextButton")
+ThemeBtn.Parent = Top
+ThemeBtn.Size = UDim2.new(0,30,0,30)
+ThemeBtn.Position = UDim2.new(0,10,0,12)
+ThemeBtn.BackgroundTransparency = 1
+ThemeBtn.Text = "🎨"
+ThemeBtn.TextColor3 = Color3.new(1,1,1)
+ThemeBtn.Font = Enum.Font.GothamBold
+ThemeBtn.TextScaled = true
+ThemeBtn.AutoButtonColor = false
+ThemeBtn.MouseButton1Click:Connect(function()
+    local themes = {"Dark", "Light", "Neon"}
+    local idx = table.find(themes, Settings.Theme)
+    idx = idx and (idx % #themes) + 1 or 1
+    Settings.Theme = themes[idx]
+    ApplyTheme(Settings.Theme)
 end)
 
 -- ======================================================
@@ -153,160 +208,486 @@ end)
 -- ======================================================
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = Main
-Sidebar.Position = UDim2.new(0, 0, 0, CONFIG.TopHeight)
-Sidebar.Size = UDim2.new(0, CONFIG.SidebarWidth, 1, -CONFIG.TopHeight)
-Sidebar.BackgroundColor3 = CONFIG.Colors.Sidebar
+Sidebar.Position = UDim2.new(0,0,0,55)
+Sidebar.Size = UDim2.new(0,200,1,-55)
+Sidebar.BackgroundColor3 = Themes.Dark.Sidebar
 Sidebar.BorderSizePixel = 0
 
 local SidebarLayout = Instance.new("UIListLayout")
 SidebarLayout.Parent = Sidebar
-SidebarLayout.Padding = UDim.new(0, 8)
+SidebarLayout.Padding = UDim.new(0,10)
 SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 local SidebarPadding = Instance.new("UIPadding")
 SidebarPadding.Parent = Sidebar
-SidebarPadding.PaddingTop = UDim.new(0, 12)
+SidebarPadding.PaddingTop = UDim.new(0,15)
 
 -- ======================================================
 --  PÁGINAS
 -- ======================================================
-local Pages = Instance.new("Frame")
-Pages.Parent = Main
-Pages.Position = UDim2.new(0, CONFIG.SidebarWidth + 5, 0, CONFIG.TopHeight + 5)
-Pages.Size = UDim2.new(1, -CONFIG.SidebarWidth - 15, 1, -CONFIG.TopHeight - 15)
-Pages.BackgroundColor3 = CONFIG.Colors.PageBg
-Pages.BorderSizePixel = 0
-CreateCorner(Pages, UDim.new(0, 10))
+local PagesContainer = Instance.new("Frame")
+PagesContainer.Parent = Main
+PagesContainer.Position = UDim2.new(0,210,0,65)
+PagesContainer.Size = UDim2.new(1,-220,1,-75)
+PagesContainer.BackgroundColor3 = Themes.Dark.Page
+PagesContainer.BorderSizePixel = 0
+CreateCorner(PagesContainer, UDim.new(0,10))
+PagesContainer.ClipsDescendants = true
 
 -- ======================================================
---  CRIAÇÃO DAS ABAS E PÁGINAS
+--  SISTEMA DE NOTIFICAÇÕES (TOASTS)
 -- ======================================================
-local CurrentPage = nil
+local function Notify(text, color, duration)
+    color = color or Color3.fromRGB(255,80,180)
+    duration = duration or 3
+    local frame = Instance.new("Frame")
+    frame.Parent = gui
+    frame.Size = UDim2.new(0,300,0,50)
+    frame.Position = UDim2.new(1,-320,1,-80)
+    frame.BackgroundColor3 = color
+    frame.BackgroundTransparency = 0.2
+    CreateCorner(frame, UDim.new(0,8))
+    local stroke = CreateStroke(frame, color, 2)
+    local label = CreateLabel(frame, text, UDim2.new(1,0,1,0), nil, Color3.new(1,1,1), Enum.Font.Gotham, false)
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    frame:TweenPosition(UDim2.new(1,-320,1,-100), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    task.wait(duration)
+    frame:TweenPosition(UDim2.new(1,-320,1,-20), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true, nil, function()
+        frame:Destroy()
+    end)
+end
 
-local function CreatePageContent(page, tabName)
-    local title = CreateTextLabel(page, tabName, UDim2.new(1, 0, 0, 50), UDim2.new(0, 10, 0.05, 0), CONFIG.Colors.AccentLight, Enum.Font.GothamBlack)
+-- ======================================================
+--  FUNÇÃO PARA APLICAR TEMA
+-- ======================================================
+function ApplyTheme(themeName)
+    local colors = Themes[themeName] or Themes.Dark
+    -- Atualizar cores dos elementos principais
+    Main.BackgroundColor3 = colors.BG
+    mainStroke.Color = colors.Stroke
+    Top.BackgroundColor3 = colors.Top
+    Title.TextColor3 = colors.AccentLight
+    Sidebar.BackgroundColor3 = colors.Sidebar
+    PagesContainer.BackgroundColor3 = colors.Page
+    CloseBtn.BackgroundColor3 = colors.Close
+    MinBtn.BackgroundColor3 = colors.Min
+    -- Atualizar botões da sidebar
+    for _, btn in ipairs(Sidebar:GetChildren()) do
+        if btn:IsA("TextButton") then
+            btn.BackgroundColor3 = colors.Button
+            btn.TextColor3 = colors.AccentLight
+        end
+    end
+    -- Atualizar stroke de todos os botões (pode otimizar depois)
+    Notify("Tema alterado para " .. themeName, colors.Accent, 2)
+end
+
+-- ======================================================
+--  FUNÇÃO PARA CRIAR UMA PÁGINA COM CONTEÚDO
+-- ======================================================
+local function CreatePage(tabName)
+    local page = Instance.new("Frame")
+    page.Name = tabName
+    page.Parent = PagesContainer
+    page.Size = UDim2.new(1,0,1,0)
+    page.BackgroundTransparency = 1
+    page.Visible = (tabName == "Home")
+
+    -- Título da página
+    local title = CreateLabel(page, tabName, UDim2.new(1,0,0,50), UDim2.new(0,15,0.03,0), Themes.Dark.AccentLight, Enum.Font.GothamBlack)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Conteúdo por aba
     if tabName == "Home" then
-        local desc = CreateTextLabel(page, "Bem-vindo ao Popcat GUI!\nClique nas abas ao lado para navegar.", 
-            UDim2.new(1, -20, 0, 80), UDim2.new(0, 10, 0.15, 0), Color3.new(1, 1, 1), Enum.Font.Gotham)
-        desc.TextScaled = false
-        desc.TextSize = 20
+        local desc = CreateLabel(page, "Bem-vindo ao Popcat GUI!\n\n• F1 para abrir/fechar\n• Arraste pela barra superior\n• Clique nas abas ao lado\n• Tema alternável com o botão 🎨\n\nVersão 3.0 - Ultra Completa", 
+            UDim2.new(1,-30,0,200), UDim2.new(0,15,0.15,0), Themes.Dark.Text, Enum.Font.Gotham, false)
+        desc.TextSize = 18
         desc.TextWrapped = true
     elseif tabName == "Player" then
+        -- Informações do jogador
+        local info = CreateLabel(page, "👤 Informações do Jogador\n\nNome: " .. Player.Name .. "\nID: " .. Player.UserId .. "\nTime: " .. (Player.Team and Player.Team.Name or "Nenhum"),
+            UDim2.new(0,400,0,150), UDim2.new(0,15,0.15,0), Themes.Dark.Text, Enum.Font.Gotham, false)
+        info.TextSize = 18
+        info.TextWrapped = true
+        
+        -- Toggle Modo Deus
         local toggle = Instance.new("TextButton")
         toggle.Parent = page
-        toggle.Size = UDim2.new(0, 200, 0, 40)
-        toggle.Position = UDim2.new(0, 10, 0.2, 0)
-        toggle.BackgroundColor3 = CONFIG.Colors.ButtonBg
+        toggle.Size = UDim2.new(0,200,0,45)
+        toggle.Position = UDim2.new(0,15,0.4,0)
+        toggle.BackgroundColor3 = Themes.Dark.Button
         toggle.Text = "Ativar Modo Deus"
-        toggle.TextColor3 = Color3.new(1, 1, 1)
+        toggle.TextColor3 = Themes.Dark.Text
         toggle.Font = Enum.Font.GothamBold
         toggle.TextScaled = true
-        CreateCorner(toggle, UDim.new(0, 8))
-        local stroke = CreateStroke(toggle, CONFIG.Colors.Accent, 2)
+        toggle.AutoButtonColor = false
+        CreateCorner(toggle, UDim.new(0,8))
+        local togStroke = CreateStroke(toggle, Themes.Dark.Accent, 2)
         local active = false
         toggle.MouseButton1Click:Connect(function()
             active = not active
-            toggle.BackgroundColor3 = active and CONFIG.Colors.Accent or CONFIG.Colors.ButtonBg
+            toggle.BackgroundColor3 = active and Themes.Dark.Accent or Themes.Dark.Button
             toggle.Text = active and "✅ Ativado" or "Ativar Modo Deus"
+            if active then
+                -- Lógica do modo deus
+                local char = Player.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.Health = char.Humanoid.MaxHealth
+                    char.Humanoid.WalkSpeed = 50
+                end
+                Notify("Modo Deus ativado!", Themes.Dark.Accent)
+            else
+                local char = Player.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.WalkSpeed = 16
+                end
+                Notify("Modo Deus desativado!", Color3.fromRGB(255,100,100))
+            end
         end)
+    elseif tabName == "Powers" then
+        -- Slider de velocidade
+        local speedLabel = CreateLabel(page, "⚡ Velocidade: 16", UDim2.new(0,200,0,40), UDim2.new(0,15,0.15,0), Themes.Dark.Text, Enum.Font.Gotham, false)
+        speedLabel.TextSize = 18
+        
+        local slider = Instance.new("Frame")
+        slider.Parent = page
+        slider.Size = UDim2.new(0,250,0,20)
+        slider.Position = UDim2.new(0,15,0.25,0)
+        slider.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        CreateCorner(slider, UDim.new(1,0))
+        
+        local fill = Instance.new("Frame")
+        fill.Parent = slider
+        fill.Size = UDim2.new(0.5,0,1,0)
+        fill.BackgroundColor3 = Themes.Dark.Accent
+        CreateCorner(fill, UDim.new(1,0))
+        
+        local dragging = false
+        local function updateSlider(x)
+            local rel = math.clamp((x - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            fill.Size = UDim2.new(rel,0,1,0)
+            local speed = math.floor(16 + rel * 84) -- 16 a 100
+            speedLabel.Text = "⚡ Velocidade: " .. speed
+            -- Aplicar velocidade
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = speed
+            end
+        end
+        
+        slider.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                updateSlider(input.Position.X)
+            end
+        end)
+        UIS.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        UIS.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateSlider(input.Position.X)
+            end
+        end)
+        
+        -- Dropdown de poderes
+        local dropBtn = Instance.new("TextButton")
+        dropBtn.Parent = page
+        dropBtn.Size = UDim2.new(0,200,0,40)
+        dropBtn.Position = UDim2.new(0,15,0.4,0)
+        dropBtn.BackgroundColor3 = Themes.Dark.Button
+        dropBtn.Text = "Selecionar Poder"
+        dropBtn.TextColor3 = Themes.Dark.Text
+        dropBtn.Font = Enum.Font.GothamBold
+        dropBtn.TextScaled = true
+        dropBtn.AutoButtonColor = false
+        CreateCorner(dropBtn, UDim.new(0,8))
+        local dropStroke = CreateStroke(dropBtn, Themes.Dark.Accent, 2)
+        
+        local dropList = Instance.new("Frame")
+        dropList.Parent = page
+        dropList.Size = UDim2.new(0,200,0,120)
+        dropList.Position = UDim2.new(0,15,0.55,0)
+        dropList.BackgroundColor3 = Themes.Dark.Sidebar
+        dropList.Visible = false
+        CreateCorner(dropList, UDim.new(0,8))
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.Parent = dropList
+        listLayout.Padding = UDim.new(0,4)
+        
+        local powers = {"Super Força", "Invisibilidade", "Voo", "Teletransporte"}
+        for _, p in ipairs(powers) do
+            local item = Instance.new("TextButton")
+            item.Parent = dropList
+            item.Size = UDim2.new(1,-10,0,30)
+            item.BackgroundColor3 = Themes.Dark.Button
+            item.Text = p
+            item.TextColor3 = Themes.Dark.Text
+            item.Font = Enum.Font.Gotham
+            item.TextScaled = true
+            item.AutoButtonColor = false
+            CreateCorner(item, UDim.new(0,6))
+            item.MouseButton1Click:Connect(function()
+                dropBtn.Text = "🔮 " .. p
+                dropList.Visible = false
+                Notify("Poder selecionado: " .. p, Themes.Dark.Accent)
+            end)
+        end
+        
+        dropBtn.MouseButton1Click:Connect(function()
+            dropList.Visible = not dropList.Visible
+        end)
+        
+    elseif tabName == "Visual" then
+        -- Opções visuais
+        local toggleEsp = Instance.new("TextButton")
+        toggleEsp.Parent = page
+        toggleEsp.Size = UDim2.new(0,200,0,45)
+        toggleEsp.Position = UDim2.new(0,15,0.2,0)
+        toggleEsp.BackgroundColor3 = Themes.Dark.Button
+        toggleEsp.Text = "Ativar ESP"
+        toggleEsp.TextColor3 = Themes.Dark.Text
+        toggleEsp.Font = Enum.Font.GothamBold
+        toggleEsp.TextScaled = true
+        toggleEsp.AutoButtonColor = false
+        CreateCorner(toggleEsp, UDim.new(0,8))
+        local espStroke = CreateStroke(toggleEsp, Themes.Dark.Accent, 2)
+        local espActive = false
+        toggleEsp.MouseButton1Click:Connect(function()
+            espActive = not espActive
+            toggleEsp.BackgroundColor3 = espActive and Themes.Dark.Accent or Themes.Dark.Button
+            toggleEsp.Text = espActive and "✅ ESP Ativado" or "Ativar ESP"
+            Notify(espActive and "ESP ativado!" or "ESP desativado!", espActive and Themes.Dark.Accent or Color3.fromRGB(255,100,100))
+        end)
+        
+        -- Slider de transparência
+        local transLabel = CreateLabel(page, "🔲 Transparência: 50%", UDim2.new(0,250,0,40), UDim2.new(0,15,0.4,0), Themes.Dark.Text, Enum.Font.Gotham, false)
+        transLabel.TextSize = 18
+        
+        local transSlider = Instance.new("Frame")
+        transSlider.Parent = page
+        transSlider.Size = UDim2.new(0,250,0,20)
+        transSlider.Position = UDim2.new(0,15,0.5,0)
+        transSlider.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        CreateCorner(transSlider, UDim.new(1,0))
+        
+        local transFill = Instance.new("Frame")
+        transFill.Parent = transSlider
+        transFill.Size = UDim2.new(0.5,0,1,0)
+        transFill.BackgroundColor3 = Themes.Dark.Accent
+        CreateCorner(transFill, UDim.new(1,0))
+        
+        local dragTrans = false
+        local function updateTrans(x)
+            local rel = math.clamp((x - transSlider.AbsolutePosition.X) / transSlider.AbsoluteSize.X, 0, 1)
+            transFill.Size = UDim2.new(rel,0,1,0)
+            local trans = math.floor(rel * 100)
+            transLabel.Text = "🔲 Transparência: " .. trans .. "%"
+            -- Aplicar transparência (exemplo: no Main)
+            Main.BackgroundTransparency = 1 - (trans / 100) * 0.5
+        end
+        transSlider.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragTrans = true
+                updateTrans(input.Position.X)
+            end
+        end)
+        UIS.InputChanged:Connect(function(input)
+            if dragTrans and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateTrans(input.Position.X)
+            end
+        end)
+        UIS.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragTrans = false
+            end
+        end)
+        
+    elseif tabName == "Settings" then
+        -- Configurações
+        local autoOpen = Instance.new("TextButton")
+        autoOpen.Parent = page
+        autoOpen.Size = UDim2.new(0,200,0,45)
+        autoOpen.Position = UDim2.new(0,15,0.2,0)
+        autoOpen.BackgroundColor3 = Themes.Dark.Button
+        autoOpen.Text = "Auto-abrir ao entrar"
+        autoOpen.TextColor3 = Themes.Dark.Text
+        autoOpen.Font = Enum.Font.GothamBold
+        autoOpen.TextScaled = true
+        autoOpen.AutoButtonColor = false
+        CreateCorner(autoOpen, UDim.new(0,8))
+        local autoStroke = CreateStroke(autoOpen, Themes.Dark.Accent, 2)
+        local autoState = false
+        autoOpen.MouseButton1Click:Connect(function()
+            autoState = not autoState
+            autoOpen.BackgroundColor3 = autoState and Themes.Dark.Accent or Themes.Dark.Button
+            autoOpen.Text = autoState and "✅ Ativado" or "Auto-abrir ao entrar"
+            Notify(autoState and "Auto-abrir ativado!" or "Auto-abrir desativado!", autoState and Themes.Dark.Accent or Color3.fromRGB(255,100,100))
+        end)
+        
+        -- Botão reset
+        local resetBtn = Instance.new("TextButton")
+        resetBtn.Parent = page
+        resetBtn.Size = UDim2.new(0,200,0,45)
+        resetBtn.Position = UDim2.new(0,15,0.4,0)
+        resetBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+        resetBtn.Text = "Resetar Configurações"
+        resetBtn.TextColor3 = Color3.new(1,1,1)
+        resetBtn.Font = Enum.Font.GothamBold
+        resetBtn.TextScaled = true
+        resetBtn.AutoButtonColor = false
+        CreateCorner(resetBtn, UDim.new(0,8))
+        resetBtn.MouseButton1Click:Connect(function()
+            Settings.Theme = "Dark"
+            ApplyTheme("Dark")
+            Notify("Configurações resetadas!", Color3.fromRGB(255,200,50))
+        end)
+        
+    elseif tabName == "Credits" then
+        local creditText = [[
+👾 Criado por enzinncatrip
+
+Versão 3.0 - Ultra Completa
+
+Agradecimentos especiais:
+- Comunidade do Roblox
+- Executores que tornam isso possível
+
+🐱 Popcat GUI é open-source!
+Contribuições são bem-vindas.
+        ]]
+        local credits = CreateLabel(page, creditText, UDim2.new(1,-30,0,300), UDim2.new(0,15,0.1,0), Themes.Dark.Text, Enum.Font.Gotham, false)
+        credits.TextSize = 18
+        credits.TextWrapped = true
     end
+
+    return page
 end
 
-for _, tabName in ipairs(CONFIG.Tabs) do
+-- ======================================================
+--  CRIA OS BOTÕES E PÁGINAS
+-- ======================================================
+local TabsList = {"Home", "Player", "Powers", "Visual", "Settings", "Credits"}
+local currentPage = nil
+
+for _, tabName in ipairs(TabsList) do
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
-    btn.Size = UDim2.new(0.9, 0, 0, 42)
-    btn.BackgroundColor3 = CONFIG.Colors.ButtonBg
+    btn.Size = UDim2.new(0.9,0,0,45)
+    btn.BackgroundColor3 = Themes.Dark.Button
     btn.Text = tabName
     btn.Font = Enum.Font.GothamBold
     btn.TextScaled = true
-    btn.TextColor3 = CONFIG.Colors.AccentLight
+    btn.TextColor3 = Themes.Dark.AccentLight
     btn.AutoButtonColor = false
-    CreateCorner(btn, UDim.new(0, 8))
-    local btnStroke = CreateStroke(btn, CONFIG.Colors.Accent, 2)
-
-    local page = Instance.new("Frame")
-    page.Name = tabName
-    page.Parent = Pages
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.BackgroundTransparency = 1
-    page.Visible = (tabName == "Home")
-    if tabName == "Home" then CurrentPage = page end
-
-    CreatePageContent(page, tabName)
-
+    CreateCorner(btn, UDim.new(0,8))
+    local btnStroke = CreateStroke(btn, Themes.Dark.Accent, 2)
+    
+    local page = CreatePage(tabName)
+    if tabName == "Home" then currentPage = page end
+    
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.15), {
-            BackgroundColor3 = CONFIG.Colors.Accent
+            BackgroundColor3 = Themes.Dark.Accent
         }):Play()
     end)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.15), {
-            BackgroundColor3 = CONFIG.Colors.ButtonBg
+            BackgroundColor3 = Themes.Dark.Button
         }):Play()
     end)
-
+    
     btn.MouseButton1Click:Connect(function()
-        for _, child in ipairs(Pages:GetChildren()) do
+        -- Animação de transição
+        for _, child in ipairs(PagesContainer:GetChildren()) do
             if child:IsA("Frame") then
                 child.Visible = false
             end
         end
         page.Visible = true
-        CurrentPage = page
+        currentPage = page
+        -- Efeito de clique no botão
+        TweenService:Create(btn, TweenInfo.new(0.1), {
+            Size = UDim2.new(0.85,0,0,42)
+        }):Play()
+        task.wait(0.1)
+        TweenService:Create(btn, TweenInfo.new(0.1), {
+            Size = UDim2.new(0.9,0,0,45)
+        }):Play()
     end)
 end
 
 -- ======================================================
---  DRAG
+--  DRAG MELHORADO
 -- ======================================================
-local dragging = false
-local dragStart, startPos, dragInput
-
+local dragData = {dragging = false, startPos = nil, startMouse = nil}
 Top.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = Main.Position
+        dragData.dragging = true
+        dragData.startPos = Main.Position
+        dragData.startMouse = input.Position
     end
 end)
-
 Top.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
+        dragData.dragging = false
     end
 end)
-
 UIS.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragData.dragging then
+        local delta = input.Position - dragData.startMouse
         Main.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
+            dragData.startPos.X.Scale,
+            dragData.startPos.X.Offset + delta.X,
+            dragData.startPos.Y.Scale,
+            dragData.startPos.Y.Offset + delta.Y
         )
     end
 end)
 
 -- ======================================================
---  ATALHO TECLADO
+--  TECLA F1
 -- ======================================================
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F1 then
         gui.Enabled = not gui.Enabled
+        if gui.Enabled then
+            TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+                Position = UDim2.new(0.5,-475,0.5,-290)
+            }):Play()
+        end
     end
 end)
 
 -- ======================================================
---  GLOW
+--  EFEITO GLOW MELHORADO
 -- ======================================================
-local hue = 0
 RunService.Heartbeat:Connect(function()
-    hue = (hue + 0.002) % 1
-    MainStroke.Color = Color3.fromHSV(0.9, 0.65, 1)
-    MainStroke.Thickness = 3 + math.sin(tick() * 4) * 0.7
+    mainStroke.Color = Color3.fromHSV(0.9, 0.65, 1)
+    mainStroke.Thickness = 3 + math.sin(tick() * 4) * 0.7
 end)
 
-print("Popcat GUI carregada com sucesso!")
+-- ======================================================
+--  INICIALIZAÇÃO
+-- ======================================================
+-- Abrir página Home
+for _, child in ipairs(PagesContainer:GetChildren()) do
+    if child:IsA("Frame") and child.Name == "Home" then
+        child.Visible = true
+    else
+        child.Visible = false
+    end
+end
+
+-- Aplicar tema inicial
+ApplyTheme(Settings.Theme)
+
+-- Notificação de boas-vindas
+task.wait(0.5)
+Notify("🐱 Popcat GUI carregada! Pressione F1 para abrir/fechar.", Themes.Dark.Accent, 4)
+
+print("✅ Popcat GUI Ultra Completa carregada com sucesso!")
