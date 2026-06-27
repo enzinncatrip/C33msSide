@@ -1,75 +1,103 @@
--- ============================================================
---  🚀 POPCAT GUI ULTIMATE - Versão 4.0
---  GUI completa com ESP, Teleport, Aimbot, Speed, Jump,
---  Infinite Yield, Kill All, e muito mais!
--- ============================================================
+-- ===================================================================
+--  🐱 MEGA POPCAT GUI - Edição Suprema v4.0
+--  Com mais de 30 funcionalidades avançadas
+--  Atalho: F1 (abrir/fechar) | Suporte a salvamento automático
+-- ===================================================================
 
-if getgenv().PopcatUltimateLoaded then return end
-getgenv().PopcatUltimateLoaded = true
+if getgenv().MegaPopcatLoaded then return end
+getgenv().MegaPopcatLoaded = true
 
--- ============================================================
---  SERVIÇOS
--- ============================================================
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local UIS = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-local GuiService = game:GetService("GuiService")
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StarterGui = game:GetService("StarterGui")
-local TeleportService = game:GetService("TeleportService")
-
-local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
-local Camera = Workspace.CurrentCamera
-
--- ============================================================
+-- ===================================================================
 --  CONFIGURAÇÕES
--- ============================================================
+-- ===================================================================
 local CONFIG = {
-    WindowSize = {Width = 1000, Height = 620},
+    Title = "🐱 MEGA POPCAT GUI",
+    Width = 980,
+    Height = 620,
     SidebarWidth = 200,
     TopHeight = 50,
-    Accent = Color3.fromRGB(255, 80, 180),
-    AccentLight = Color3.fromRGB(255, 120, 210),
-    BG = Color3.fromRGB(18, 18, 18),
-    SidebarBG = Color3.fromRGB(23, 23, 23),
-    TopBG = Color3.fromRGB(28, 28, 28),
-    ContentBG = Color3.fromRGB(15, 15, 15),
-    TextColor = Color3.fromRGB(255, 255, 255),
-    Tabs = {"Início", "Player", "ESP", "Teleport", "Misc", "Admin", "Sobre"},
     DefaultTab = "Início",
     ToggleKey = Enum.KeyCode.F1,
+    Accent = Color3.fromRGB(255, 80, 180),
+    AccentLight = Color3.fromRGB(255, 120, 210),
+    BG = Color3.fromRGB(16, 16, 20),
+    SidebarBG = Color3.fromRGB(22, 22, 26),
+    TopBG = Color3.fromRGB(28, 28, 34),
+    ContentBG = Color3.fromRGB(14, 14, 18),
+    TextColor = Color3.fromRGB(240, 240, 240),
 }
 
--- ============================================================
+-- ===================================================================
+--  SERVIÇOS
+-- ===================================================================
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
+
+-- ===================================================================
+--  SISTEMA DE SALVAMENTO (persistência entre execuções)
+-- ===================================================================
+local Settings = getgenv().PopcatSettings or {}
+getgenv().PopcatSettings = Settings
+
+local function SaveSetting(key, value)
+    Settings[key] = value
+end
+
+local function LoadSetting(key, default)
+    if Settings[key] ~= nil then
+        return Settings[key]
+    end
+    return default
+end
+
+-- ===================================================================
 --  CRIAÇÃO DA GUI
--- ============================================================
+-- ===================================================================
 local gui = Instance.new("ScreenGui")
-gui.Name = "PopcatUltimate"
+gui.Name = "MegaPopcatGUI"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
-gui.Parent = Player:WaitForChild("PlayerGui")
+gui.Parent = PlayerGui
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0, CONFIG.WindowSize.Width, 0, CONFIG.WindowSize.Height)
-Main.Position = UDim2.new(0.5, -CONFIG.WindowSize.Width/2, 0.5, -CONFIG.WindowSize.Height/2)
+Main.Size = UDim2.new(0, CONFIG.Width, 0, CONFIG.Height)
+Main.Position = UDim2.new(0.5, -CONFIG.Width/2, 0.5, -CONFIG.Height/2)
 Main.BackgroundColor3 = CONFIG.BG
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
 Main.Parent = gui
+
 local MainCorner = Instance.new("UICorner")
 MainCorner.Parent = Main
 MainCorner.CornerRadius = UDim.new(0, 14)
+
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Parent = Main
 MainStroke.Color = CONFIG.Accent
 MainStroke.Thickness = 3
 
--- Topbar
+-- Sombra
+local Shadow = Instance.new("ImageLabel")
+Shadow.Parent = Main
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://1316046414"
+Shadow.ImageColor3 = Color3.new(0,0,0)
+Shadow.ImageTransparency = 0.4
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10,10,20,20)
+
+-- ===================================================================
+--  TOPBAR
+-- ===================================================================
 local Top = Instance.new("Frame")
 Top.Parent = Main
 Top.Size = UDim2.new(1, 0, 0, CONFIG.TopHeight)
@@ -82,71 +110,89 @@ TopCorner.CornerRadius = UDim.new(0, 14)
 local Title = Instance.new("TextLabel")
 Title.Parent = Top
 Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -160, 1, 0)
+Title.Size = UDim2.new(1, -170, 1, 0)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "🚀 POPCAT ULTIMATE"
+Title.Text = CONFIG.Title
 Title.Font = Enum.Font.GothamBlack
 Title.TextScaled = true
 Title.TextColor3 = CONFIG.AccentLight
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Fechar
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = Top
-CloseBtn.Size = UDim2.new(0, 32, 0, 32)
-CloseBtn.Position = UDim2.new(1, -45, 0.09, 0)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.new(1,1,1)
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextScaled = true
-CloseBtn.AutoButtonColor = false
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.Parent = CloseBtn
-CloseCorner.CornerRadius = UDim.new(1,0)
-CloseBtn.MouseButton1Click:Connect(function() gui.Enabled = false end)
+-- Gato
+local Cat = Instance.new("ImageButton")
+Cat.Parent = Top
+Cat.BackgroundTransparency = 1
+Cat.Size = UDim2.new(0, 44, 0, 44)
+Cat.Position = UDim2.new(1, -170, 0.05, 0)
+Cat.Image = "rbxassetid://123564975653468" -- Troque
+Cat.ScaleType = Enum.ScaleType.Fit
+Cat.MouseButton1Click:Connect(function()
+    Notify("🐱 Popcat agradece!", 2)
+end)
 
--- Minimizar
-local MinBtn = Instance.new("TextButton")
-MinBtn.Parent = Top
-MinBtn.Size = UDim2.new(0, 32, 0, 32)
-MinBtn.Position = UDim2.new(1, -85, 0.09, 0)
-MinBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 255)
-MinBtn.Text = "─"
-MinBtn.TextColor3 = Color3.new(1,1,1)
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextScaled = true
-MinBtn.AutoButtonColor = false
-local MinCorner = Instance.new("UICorner")
-MinCorner.Parent = MinBtn
-MinCorner.CornerRadius = UDim.new(1,0)
-local minimized = false
+-- Botões
+local function CreateTopButton(parent, text, posX, bgColor)
+    local btn = Instance.new("TextButton")
+    btn.Parent = parent
+    btn.Size = UDim2.new(0, 32, 0, 32)
+    btn.Position = UDim2.new(1, posX, 0.09, 0)
+    btn.BackgroundColor3 = bgColor
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    btn.AutoButtonColor = false
+    local corner = Instance.new("UICorner")
+    corner.Parent = btn
+    corner.CornerRadius = UDim.new(1,0)
+    return btn
+end
+
+local MinBtn = CreateTopButton(Top, "─", -85, Color3.fromRGB(70,70,255))
+local CloseBtn = CreateTopButton(Top, "✕", -45, Color3.fromRGB(255,70,70))
+
+local isMinimized = false
 MinBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    local size = minimized and UDim2.new(0, CONFIG.WindowSize.Width, 0, CONFIG.TopHeight+12) or UDim2.new(0, CONFIG.WindowSize.Width, 0, CONFIG.WindowSize.Height)
-    local pos = minimized and UDim2.new(0.5, -CONFIG.WindowSize.Width/2, 0.5, -(CONFIG.TopHeight+12)/2) or UDim2.new(0.5, -CONFIG.WindowSize.Width/2, 0.5, -CONFIG.WindowSize.Height/2)
-    TweenService:Create(Main, TweenInfo.new(0.3), {Size = size, Position = pos}):Play()
+    isMinimized = not isMinimized
+    local targetSize = isMinimized and UDim2.new(0, CONFIG.Width, 0, CONFIG.TopHeight+12) or UDim2.new(0, CONFIG.Width, 0, CONFIG.Height)
+    local targetPos = isMinimized and UDim2.new(0.5, -CONFIG.Width/2, 0.5, -(CONFIG.TopHeight+12)/2) or UDim2.new(0.5, -CONFIG.Width/2, 0.5, -CONFIG.Height/2)
+    TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
+        Size = targetSize,
+        Position = targetPos
+    }):Play()
     for _, child in ipairs(Main:GetChildren()) do
-        if child ~= Top then child.Visible = not minimized end
+        if child ~= Top and child ~= Shadow then
+            child.Visible = not isMinimized
+        end
     end
 end)
 
--- Sidebar
+CloseBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(gui, TweenInfo.new(0.3), {Enabled = false}):Play()
+end)
+
+-- ===================================================================
+--  SIDEBAR
+-- ===================================================================
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = Main
 Sidebar.Position = UDim2.new(0, 0, 0, CONFIG.TopHeight)
 Sidebar.Size = UDim2.new(0, CONFIG.SidebarWidth, 1, -CONFIG.TopHeight)
 Sidebar.BackgroundColor3 = CONFIG.SidebarBG
 Sidebar.BorderSizePixel = 0
+
 local SidebarLayout = Instance.new("UIListLayout")
 SidebarLayout.Parent = Sidebar
-SidebarLayout.Padding = UDim.new(0, 8)
+SidebarLayout.Padding = UDim.new(0, 10)
 SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
 local SidebarPadding = Instance.new("UIPadding")
 SidebarPadding.Parent = Sidebar
-SidebarPadding.PaddingTop = UDim.new(0, 12)
+SidebarPadding.PaddingTop = UDim.new(0, 16)
 
--- Content
+-- ===================================================================
+--  ÁREA DE CONTEÚDO
+-- ===================================================================
 local Content = Instance.new("Frame")
 Content.Parent = Main
 Content.Position = UDim2.new(0, CONFIG.SidebarWidth+8, 0, CONFIG.TopHeight+8)
@@ -157,69 +203,94 @@ local ContentCorner = Instance.new("UICorner")
 ContentCorner.Parent = Content
 ContentCorner.CornerRadius = UDim.new(0, 10)
 
--- ============================================================
---  NOTIFICAÇÕES
--- ============================================================
+-- ===================================================================
+--  NOTIFICAÇÕES (Sistema de Toast)
+-- ===================================================================
 local NotifyContainer = Instance.new("Frame")
 NotifyContainer.Parent = gui
-NotifyContainer.Size = UDim2.new(0, 350, 0, 200)
-NotifyContainer.Position = UDim2.new(1, -370, 0, 20)
+NotifyContainer.Size = UDim2.new(0, 400, 0, 150)
+NotifyContainer.Position = UDim2.new(1, -420, 0, 20)
 NotifyContainer.BackgroundTransparency = 1
-NotifyContainer.Name = "NotifContainer"
+NotifyContainer.Name = "Notifications"
 
-local function Notify(msg, dur, color)
-    dur = dur or 3
+local function Notify(message, duration, color)
+    duration = duration or 3
     color = color or CONFIG.Accent
-    local f = Instance.new("Frame")
-    f.Parent = NotifyContainer
-    f.Size = UDim2.new(1, 0, 0, 40)
-    f.BackgroundColor3 = Color3.fromRGB(20,20,20)
-    f.BorderSizePixel = 0
-    f.Position = UDim2.new(0, 0, 0, -50)
-    local fc = Instance.new("UICorner")
-    fc.Parent = f
-    fc.CornerRadius = UDim.new(0, 8)
-    local fs = Instance.new("UIStroke")
-    fs.Parent = f
-    fs.Color = color
-    fs.Thickness = 2
-    local txt = Instance.new("TextLabel")
-    txt.Parent = f
-    txt.BackgroundTransparency = 1
-    txt.Size = UDim2.new(1, -20, 1, 0)
-    txt.Position = UDim2.new(0,10,0,0)
-    txt.Text = msg
-    txt.TextColor3 = Color3.new(1,1,1)
-    txt.Font = Enum.Font.Gotham
-    txt.TextSize = 16
-    txt.TextXAlignment = Enum.TextXAlignment.Left
-    txt.TextYAlignment = Enum.TextYAlignment.Center
-    TweenService:Create(f, TweenInfo.new(0.4, Enum.EasingStyle.Back), {Position = UDim2.new(0,0,0,0)}):Play()
+
+    local frame = Instance.new("Frame")
+    frame.Parent = NotifyContainer
+    frame.Size = UDim2.new(1, 0, 0, 44)
+    frame.BackgroundColor3 = Color3.fromRGB(20,20,24)
+    frame.BorderSizePixel = 0
+    frame.Position = UDim2.new(0, 0, 0, -50)
+    local corner = Instance.new("UICorner")
+    corner.Parent = frame
+    corner.CornerRadius = UDim.new(0, 10)
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = frame
+    stroke.Color = color
+    stroke.Thickness = 2
+
+    local text = Instance.new("TextLabel")
+    text.Parent = frame
+    text.BackgroundTransparency = 1
+    text.Size = UDim2.new(1, -20, 1, 0)
+    text.Position = UDim2.new(0, 10, 0, 0)
+    text.Text = message
+    text.TextColor3 = Color3.new(1,1,1)
+    text.Font = Enum.Font.Gotham
+    text.TextSize = 16
+    text.TextXAlignment = Enum.TextXAlignment.Left
+    text.TextYAlignment = Enum.TextYAlignment.Center
+    text.TextWrapped = true
+
+    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0, 0, 0, 0)
+    }):Play()
+
+    -- Reorganizar
     task.wait(0.1)
-    for _, child in ipairs(NotifyContainer:GetChildren()) do
-        if child ~= f then
-            TweenService:Create(child, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0, child.Position.Y.Offset + 45)}):Play()
-        end
-    end
-    task.wait(dur)
-    TweenService:Create(f, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0,-50), BackgroundTransparency = 1, TextTransparency = 1}):Play()
-    task.wait(0.4)
-    f:Destroy()
     local children = NotifyContainer:GetChildren()
     for i, child in ipairs(children) do
-        TweenService:Create(child, TweenInfo.new(0.3), {Position = UDim2.new(0,0,0,(i-1)*45)}):Play()
+        if child ~= frame then
+            local pos = child.Position.Y.Offset
+            TweenService:Create(child, TweenInfo.new(0.3), {
+                Position = UDim2.new(0, 0, 0, pos + 48)
+            }):Play()
+        end
+    end
+
+    task.wait(duration)
+    TweenService:Create(frame, TweenInfo.new(0.3), {
+        Position = UDim2.new(0, 0, 0, -50),
+        BackgroundTransparency = 1,
+        TextTransparency = 1,
+    }):Play()
+    task.wait(0.4)
+    frame:Destroy()
+
+    -- Reorganizar novamente
+    task.wait(0.1)
+    local remaining = NotifyContainer:GetChildren()
+    for i, child in ipairs(remaining) do
+        if child:IsA("Frame") then
+            TweenService:Create(child, TweenInfo.new(0.3), {
+                Position = UDim2.new(0, 0, 0, (i-1) * 48)
+            }):Play()
+        end
     end
 end
 
--- ============================================================
---  FUNÇÕES AUXILIARES (Toggle, Slider, Button)
--- ============================================================
-local function CreateToggle(parent, title, default, callback, yPos)
+-- ===================================================================
+--  FUNÇÕES AUXILIARES PARA CRIAÇÃO DE CONTROLES
+-- ===================================================================
+local function CreateToggle(parent, title, default, callback, yPos, tooltip)
     local frame = Instance.new("Frame")
     frame.Parent = parent
-    frame.Size = UDim2.new(0.9, 0, 0, 40)
-    frame.Position = UDim2.new(0.05, 0, yPos or 0.2, 0)
+    frame.Size = UDim2.new(0.92, 0, 0, 44)
+    frame.Position = UDim2.new(0.04, 0, yPos or 0.2, 0)
     frame.BackgroundTransparency = 1
+
     local label = Instance.new("TextLabel")
     label.Parent = frame
     label.Size = UDim2.new(0.6, 0, 1, 0)
@@ -229,25 +300,33 @@ local function CreateToggle(parent, title, default, callback, yPos)
     label.Font = Enum.Font.Gotham
     label.TextSize = 18
     label.TextXAlignment = Enum.TextXAlignment.Left
+
     local toggle = Instance.new("TextButton")
     toggle.Parent = frame
-    toggle.Size = UDim2.new(0, 60, 0, 30)
-    toggle.Position = UDim2.new(0.85, 0, 0.125, 0)
-    toggle.BackgroundColor3 = default and CONFIG.Accent or Color3.fromRGB(60,60,60)
+    toggle.Size = UDim2.new(0, 64, 0, 32)
+    toggle.Position = UDim2.new(0.85, 0, 0.135, 0)
+    toggle.BackgroundColor3 = default and CONFIG.Accent or Color3.fromRGB(60,60,68)
     toggle.Text = default and "ON" or "OFF"
     toggle.TextColor3 = Color3.new(1,1,1)
     toggle.Font = Enum.Font.GothamBold
     toggle.TextSize = 14
     toggle.AutoButtonColor = false
-    local tc = Instance.new("UICorner")
-    tc.Parent = toggle
-    tc.CornerRadius = UDim.new(0, 12)
-    local state = default
+    local togCorner = Instance.new("UICorner")
+    togCorner.Parent = toggle
+    togCorner.CornerRadius = UDim.new(0, 12)
+
+    local state = LoadSetting(title, default)
+    toggle.BackgroundColor3 = state and CONFIG.Accent or Color3.fromRGB(60,60,68)
+    toggle.Text = state and "ON" or "OFF"
+    if callback then callback(state) end
+
     toggle.MouseButton1Click:Connect(function()
         state = not state
-        toggle.BackgroundColor3 = state and CONFIG.Accent or Color3.fromRGB(60,60,60)
+        toggle.BackgroundColor3 = state and CONFIG.Accent or Color3.fromRGB(60,60,68)
         toggle.Text = state and "ON" or "OFF"
+        SaveSetting(title, state)
         if callback then callback(state) end
+        Notify(title .. (state and " ✅" or " ❌"), 1.5)
     end)
     return toggle
 end
@@ -255,284 +334,106 @@ end
 local function CreateSlider(parent, title, min, max, default, callback, yPos)
     local frame = Instance.new("Frame")
     frame.Parent = parent
-    frame.Size = UDim2.new(0.9, 0, 0, 50)
-    frame.Position = UDim2.new(0.05, 0, yPos or 0.3, 0)
+    frame.Size = UDim2.new(0.92, 0, 0, 54)
+    frame.Position = UDim2.new(0.04, 0, yPos or 0.3, 0)
     frame.BackgroundTransparency = 1
+
     local label = Instance.new("TextLabel")
     label.Parent = frame
-    label.Size = UDim2.new(0.6, 0, 0.5, 0)
+    label.Size = UDim2.new(0.5, 0, 0.4, 0)
     label.BackgroundTransparency = 1
     label.Text = title
     label.TextColor3 = CONFIG.TextColor
     label.Font = Enum.Font.Gotham
     label.TextSize = 18
     label.TextXAlignment = Enum.TextXAlignment.Left
-    local valLabel = Instance.new("TextLabel")
-    valLabel.Parent = frame
-    valLabel.Size = UDim2.new(0.3, 0, 0.5, 0)
-    valLabel.Position = UDim2.new(0.7, 0, 0, 0)
-    valLabel.BackgroundTransparency = 1
-    valLabel.Text = tostring(default)
-    valLabel.TextColor3 = CONFIG.AccentLight
-    valLabel.Font = Enum.Font.GothamBold
-    valLabel.TextSize = 18
-    valLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Parent = frame
+    valueLabel.Size = UDim2.new(0.35, 0, 0.4, 0)
+    valueLabel.Position = UDim2.new(0.6, 0, 0, 0)
+    valueLabel.BackgroundTransparency = 1
+    local val = LoadSetting(title, default)
+    valueLabel.Text = tostring(val)
+    valueLabel.TextColor3 = CONFIG.AccentLight
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 18
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+
     local slider = Instance.new("Frame")
     slider.Parent = frame
     slider.Size = UDim2.new(0.9, 0, 0, 6)
     slider.Position = UDim2.new(0, 0, 0.75, 0)
-    slider.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    slider.BackgroundColor3 = Color3.fromRGB(50,50,58)
     slider.BorderSizePixel = 0
-    local sc = Instance.new("UICorner")
-    sc.Parent = slider
-    sc.CornerRadius = UDim.new(1,0)
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.Parent = slider
+    sliderCorner.CornerRadius = UDim.new(1,0)
+
     local fill = Instance.new("Frame")
     fill.Parent = slider
-    fill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0)
+    fill.Size = UDim2.new((val - min)/(max - min), 0, 1, 0)
     fill.BackgroundColor3 = CONFIG.Accent
     fill.BorderSizePixel = 0
-    local fc = Instance.new("UICorner")
-    fc.Parent = fill
-    fc.CornerRadius = UDim.new(1,0)
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.Parent = fill
+    fillCorner.CornerRadius = UDim.new(1,0)
+
     local dragging = false
-    local conn
+    local dragConn
     local function update(pos)
         local rel = math.clamp((pos.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
-        local val = min + (max - min) * rel
-        val = math.floor(val + 0.5)
+        local val = math.round(min + (max - min) * rel)
         fill.Size = UDim2.new(rel, 0, 1, 0)
-        valLabel.Text = tostring(val)
+        valueLabel.Text = tostring(val)
+        SaveSetting(title, val)
         if callback then callback(val) end
     end
+
     slider.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             update(input.Position)
-            conn = UIS.InputChanged:Connect(function(inp)
-                if inp.UserInputType == Enum.UserInputType.MouseMovement then update(inp.Position) end
+            dragConn = UIS.InputChanged:Connect(function(inp)
+                if inp.UserInputType == Enum.UserInputType.MouseMovement then
+                    update(inp.Position)
+                end
             end)
         end
     end)
     UIS.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and dragging then
             dragging = false
-            if conn then conn:Disconnect(); conn = nil end
+            if dragConn then dragConn:Disconnect(); dragConn = nil end
         end
     end)
+    return valueLabel
 end
 
 local function CreateButton(parent, text, callback, yPos, color)
     local btn = Instance.new("TextButton")
     btn.Parent = parent
-    btn.Size = UDim2.new(0.8, 0, 0, 40)
-    btn.Position = UDim2.new(0.1, 0, yPos or 0.2, 0)
+    btn.Size = UDim2.new(0.4, 0, 0, 44)
+    btn.Position = UDim2.new(0.04, 0, yPos or 0.4, 0)
     btn.BackgroundColor3 = color or CONFIG.Accent
     btn.Text = text
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.GothamBold
     btn.TextScaled = true
     btn.AutoButtonColor = false
-    local bc = Instance.new("UICorner")
-    bc.Parent = btn
-    bc.CornerRadius = UDim.new(0, 8)
-    btn.MouseButton1Click:Connect(callback)
+    local corner = Instance.new("UICorner")
+    corner.Parent = btn
+    corner.CornerRadius = UDim.new(0, 10)
+    btn.MouseButton1Click:Connect(function()
+        if callback then callback() end
+        Notify("✅ " .. text, 1.5)
+    end)
     return btn
 end
 
--- ============================================================
---  VARIÁVEIS GLOBAIS PARA FEATURES
--- ============================================================
-local ESPEnabled = false
-local ESPObjects = {}
-local ESPConnections = {}
-local AimbotEnabled = false
-local AimbotTarget = nil
-local AimbotSensitivity = 5
-local SpeedEnabled = false
-local SpeedValue = 50
-local JumpEnabled = false
-local JumpValue = 100
-local InfiniteJumpEnabled = false
-local FlyEnabled = false
-local FlySpeed = 50
-local FlyBodyVelocity = nil
-local TPHistory = {}
-local TPIndex = 0
-local KillAuraEnabled = false
-local KillAuraRange = 30
-local KillAuraInterval = 1
-
--- ============================================================
---  ESP SYSTEM
--- ============================================================
-local function CreateESP(player)
-    if not player.Character then return end
-    local char = player.Character
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    -- Criação do ESP (caixa, nome, distância)
-    local box = Instance.new("BoxHandleAdornment")
-    box.Parent = root
-    box.Adornee = root
-    box.Size = Vector3.new(4, 6, 2)
-    box.Color3 = player.TeamColor and player.TeamColor.Color or Color3.new(1,1,1)
-    box.Transparency = 0.5
-    box.ZIndex = 0
-    box.AlwaysOnTop = true
-
-    local line = Instance.new("LineHandleAdornment")
-    line.Parent = root
-    line.Adornee = root
-    line.Color3 = Color3.new(1,1,1)
-    line.Thickness = 1
-    line.Transparency = 0.5
-    line.Length = 50
-    line.ZIndex = 0
-
-    local bill = Instance.new("BillboardGui")
-    bill.Parent = root
-    bill.Size = UDim2.new(0, 200, 0, 50)
-    bill.Adornee = root
-    bill.AlwaysOnTop = true
-    local name = Instance.new("TextLabel")
-    name.Parent = bill
-    name.Size = UDim2.new(1,0,1,0)
-    name.BackgroundTransparency = 1
-    name.Text = player.Name .. " | " .. math.floor((root.Position - Player.Character.HumanoidRootPart.Position).Magnitude) .. "m"
-    name.TextColor3 = Color3.new(1,1,1)
-    name.TextScaled = true
-    name.Font = Enum.Font.GothamBold
-
-    table.insert(ESPObjects, {box, line, bill, name, player})
-end
-
-local function ClearESP()
-    for _, obj in ipairs(ESPObjects) do
-        for _, v in ipairs(obj) do
-            if v:IsA("BasePart") and v.Parent then v:Destroy() end
-        end
-    end
-    ESPObjects = {}
-end
-
-local function ToggleESP(state)
-    ESPEnabled = state
-    if state then
-        ClearESP()
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= Player then CreateESP(plr) end
-        end
-        ESPConnections.PlayerAdded = Players.PlayerAdded:Connect(function(plr)
-            plr.CharacterAdded:Connect(function() CreateESP(plr) end)
-        end)
-        ESPConnections.CharacterAdded = {}
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= Player then
-                ESPConnections.CharacterAdded[plr] = plr.CharacterAdded:Connect(function() CreateESP(plr) end)
-            end
-        end
-    else
-        ClearESP()
-        if ESPConnections.PlayerAdded then ESPConnections.PlayerAdded:Disconnect() end
-        for _, conn in pairs(ESPConnections.CharacterAdded or {}) do conn:Disconnect() end
-        ESPConnections = {}
-    end
-end
-
--- ============================================================
---  AIMBOT (básico)
--- ============================================================
-local function AimbotLoop()
-    if not AimbotEnabled then return end
-    local target = nil
-    local minDist = math.huge
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-            local root = plr.Character.HumanoidRootPart
-            if root then
-                local pos, onScreen = Camera:WorldToScreenPoint(root.Position)
-                if onScreen then
-                    local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-                    if dist < minDist then
-                        minDist = dist
-                        target = root
-                    end
-                end
-            end
-        end
-    end
-    if target then
-        local aimPos = target.Position + Vector3.new(0, 1.5, 0)
-        Mouse.MoveTo(aimPos)
-    end
-end
-
--- ============================================================
---  FLY SYSTEM
--- ============================================================
-local function ToggleFly(state)
-    FlyEnabled = state
-    if state then
-        local char = Player.Character
-        if not char then return end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        if not FlyBodyVelocity then
-            FlyBodyVelocity = Instance.new("BodyVelocity")
-            FlyBodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-        end
-        FlyBodyVelocity.Parent = hrp
-        FlyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        local hum = char:FindFirstChild("Humanoid")
-        if hum then hum.PlatformStand = true end
-        local conn
-        conn = RunService.Heartbeat:Connect(function()
-            if not FlyEnabled then conn:Disconnect(); return end
-            if not FlyBodyVelocity.Parent then FlyBodyVelocity.Parent = hrp end
-            local move = Vector3.new()
-            if UIS:IsKeyDown(Enum.KeyCode.W) then move = move + Camera.CFrame.LookVector * FlySpeed end
-            if UIS:IsKeyDown(Enum.KeyCode.S) then move = move - Camera.CFrame.LookVector * FlySpeed end
-            if UIS:IsKeyDown(Enum.KeyCode.A) then move = move - Camera.CFrame.RightVector * FlySpeed end
-            if UIS:IsKeyDown(Enum.KeyCode.D) then move = move + Camera.CFrame.RightVector * FlySpeed end
-            if UIS:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, FlySpeed, 0) end
-            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then move = move - Vector3.new(0, FlySpeed, 0) end
-            FlyBodyVelocity.Velocity = move
-        end)
-    else
-        if FlyBodyVelocity then FlyBodyVelocity:Destroy(); FlyBodyVelocity = nil end
-        local char = Player.Character
-        if char then
-            local hum = char:FindFirstChild("Humanoid")
-            if hum then hum.PlatformStand = false end
-        end
-    end
-end
-
--- ============================================================
---  KILL AURA
--- ============================================================
-local function ToggleKillAura(state)
-    KillAuraEnabled = state
-    if state then
-        local conn
-        conn = RunService.Heartbeat:Connect(function()
-            if not KillAuraEnabled then conn:Disconnect(); return end
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-                    local root = plr.Character:FindFirstChild("HumanoidRootPart")
-                    local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                    if root and myRoot and (root.Position - myRoot.Position).Magnitude <= KillAuraRange then
-                        plr.Character.Humanoid.Health = 0
-                    end
-                end
-            end
-        end)
-    end
-end
-
--- ============================================================
---  CRIAÇÃO DAS PÁGINAS
--- ============================================================
+-- ===================================================================
+--  CRIAÇÃO DAS PÁGINAS (com todas as funcionalidades)
+-- ===================================================================
 local Pages = {}
 local CurrentPage = nil
 
@@ -545,226 +446,419 @@ local function CreatePage(tabName)
     page.Visible = (tabName == CONFIG.DefaultTab)
 
     -- Título
-    local titleFrame = Instance.new("Frame")
-    titleFrame.Parent = page
-    titleFrame.Size = UDim2.new(1, -20, 0, 50)
-    titleFrame.Position = UDim2.new(0, 10, 0.03, 0)
-    titleFrame.BackgroundTransparency = 1
     local title = Instance.new("TextLabel")
-    title.Parent = titleFrame
+    title.Parent = page
     title.BackgroundTransparency = 1
-    title.Size = UDim2.new(0.6, 0, 1, 0)
+    title.Size = UDim2.new(0.8, 0, 0, 50)
+    title.Position = UDim2.new(0.04, 0, 0.02, 0)
     title.Text = tabName
     title.Font = Enum.Font.GothamBlack
     title.TextScaled = true
     title.TextColor3 = CONFIG.AccentLight
     title.TextXAlignment = Enum.TextXAlignment.Left
+
     local line = Instance.new("Frame")
-    line.Parent = titleFrame
+    line.Parent = page
     line.Size = UDim2.new(0, 80, 0, 3)
-    line.Position = UDim2.new(0, 0, 1, 2)
+    line.Position = UDim2.new(0.04, 0, 0.12, 0)
     line.BackgroundColor3 = CONFIG.Accent
     line.BorderSizePixel = 0
     local lineCorner = Instance.new("UICorner")
     lineCorner.Parent = line
     lineCorner.CornerRadius = UDim.new(1,0)
 
-    -- Conteúdo de cada aba
+    local yOffset = 0.18
+
+    -- ========== ABA INÍCIO ==========
     if tabName == "Início" then
         local desc = Instance.new("TextLabel")
         desc.Parent = page
         desc.BackgroundTransparency = 1
-        desc.Size = UDim2.new(0.9, 0, 0, 150)
-        desc.Position = UDim2.new(0.05, 0, 0.2, 0)
-        desc.Text = "🚀 Popcat Ultimate GUI\n\n• F1 para abrir/fechar\n• Explore todas as abas para features poderosas\n• Notificações no canto superior direito"
+        desc.Size = UDim2.new(0.9, 0, 0, 200)
+        desc.Position = UDim2.new(0.04, 0, 0.18, 0)
+        desc.Text = "🐱 Bem-vindo ao MEGA POPCAT GUI v4.0!\n\n• Mais de 30 funcionalidades\n• Atalho F1 para abrir/fechar\n• Salvamento automático das configurações\n• Navegue pelas abas para explorar tudo!\n\nDivirta-se! 🎮"
         desc.TextColor3 = CONFIG.TextColor
         desc.Font = Enum.Font.Gotham
         desc.TextSize = 20
         desc.TextWrapped = true
         desc.TextXAlignment = Enum.TextXAlignment.Left
-    elseif tabName == "Player" then
-        local y = 0.2
-        CreateToggle(page, "Modo Deus", false, function(s)
-            Notify("Modo Deus " .. (s and "ON" or "OFF"))
-            if s then
-                Player.Character.Humanoid.MaxHealth = math.huge
-                Player.Character.Humanoid.Health = math.huge
-            else
-                Player.Character.Humanoid.MaxHealth = 100
-                Player.Character.Humanoid.Health = 100
-            end
-        end, y)
-        y = y + 0.12
-        CreateToggle(page, "Speed Boost", false, function(s)
-            SpeedEnabled = s
-            Notify("Speed " .. (s and "ON" or "OFF"))
-            if s then
-                Player.Character.Humanoid.WalkSpeed = SpeedValue
-            else
-                Player.Character.Humanoid.WalkSpeed = 16
-            end
-        end, y)
-        y = y + 0.12
-        CreateSlider(page, "Velocidade", 16, 250, 50, function(v)
-            SpeedValue = v
-            if SpeedEnabled then Player.Character.Humanoid.WalkSpeed = v end
-        end, y)
-        y = y + 0.12
-        CreateToggle(page, "Jump Power", false, function(s)
-            JumpEnabled = s
-            Notify("Jump " .. (s and "ON" or "OFF"))
-            if s then
-                Player.Character.Humanoid.JumpPower = JumpValue
-            else
-                Player.Character.Humanoid.JumpPower = 50
-            end
-        end, y)
-        y = y + 0.12
-        CreateSlider(page, "Jump Power", 50, 300, 100, function(v)
-            JumpValue = v
-            if JumpEnabled then Player.Character.Humanoid.JumpPower = v end
-        end, y)
-        y = y + 0.12
-        CreateToggle(page, "Infinite Jump", false, function(s)
-            InfiniteJumpEnabled = s
-            Notify("Infinite Jump " .. (s and "ON" or "OFF"))
-        end, y)
-        -- Infinite Jump loop
-        local ijConn
-        if InfiniteJumpEnabled then
-            ijConn = RunService.Heartbeat:Connect(function()
-                if not InfiniteJumpEnabled then ijConn:Disconnect(); return end
-                if UIS:IsKeyDown(Enum.KeyCode.Space) then
-                    Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end)
-        end
-        y = y + 0.12
-        CreateToggle(page, "Fly", false, function(s)
-            ToggleFly(s)
-            Notify("Fly " .. (s and "ON" or "OFF"))
-        end, y)
-    elseif tabName == "ESP" then
-        CreateToggle(page, "ESP Ativo", false, function(s)
-            ToggleESP(s)
-            Notify("ESP " .. (s and "ON" or "OFF"))
-        end, 0.2)
-    elseif tabName == "Teleport" then
-        -- Botão para teleportar para jogadores
-        local y = 0.2
-        local function TPToPlayer(plr)
-            if plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                if root then
-                    root.CFrame = plr.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                    Notify("Teleportado para " .. plr.Name)
+
+        CreateButton(page, "📢 Testar Notificação", function()
+            Notify("🐱 Notificação de teste!", 3, CONFIG.Accent)
+        end, 0.6)
+    end
+
+    -- ========== ABA PLAYER ==========
+    if tabName == "Player" then
+        local y = yOffset
+        -- God Mode
+        CreateToggle(page, "Modo Deus", false, function(state)
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                if state then
+                    char.Humanoid.MaxHealth = 9e9
+                    char.Humanoid.Health = 9e9
+                else
+                    char.Humanoid.MaxHealth = 100
+                    char.Humanoid.Health = 100
                 end
             end
-        end
-        -- Lista de jogadores em botões
-        local function UpdateTPList()
-            for _, child in ipairs(page:GetChildren()) do
-                if child:IsA("TextButton") and child.Name == "TPBtn" then child:Destroy() end
+        end, y)
+        y = y + 0.12
+
+        -- Infinite Jump
+        CreateToggle(page, "Pulo Infinito", false, function(state)
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, state)
             end
-            local yOff = 0.35
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= Player then
-                    local btn = CreateButton(page, "Teleportar para " .. plr.Name, function()
-                        TPToPlayer(plr)
-                    end, yOff, Color3.fromRGB(100, 100, 255))
-                    btn.Name = "TPBtn"
-                    yOff = yOff + 0.08
+        end, y)
+        y = y + 0.12
+
+        -- No Clip
+        CreateToggle(page, "No Clip", false, function(state)
+            local char = Player.Character
+            if char then
+                for _, part in ipairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not state
+                    end
                 end
             end
-        end
-        UpdateTPList()
-        Players.PlayerAdded:Connect(UpdateTPList)
-        Players.PlayerRemoved:Connect(UpdateTPList)
-        CreateButton(page, "Atualizar Lista", UpdateTPList, 0.2, Color3.fromRGB(50, 200, 50))
-        -- Teleportar para coordenadas
-        y = 0.45
-        local xBox, yBox, zBox
-        -- Criar inputs para coordenadas (simplificado com botões)
-        CreateButton(page, "Teleportar para (0, 10, 0)", function()
-            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
-                Notify("Teleportado para (0,10,0)")
-            end
-        end, y, Color3.fromRGB(200, 100, 0))
-        y = y + 0.08
-        CreateButton(page, "Teleportar para (50, 5, 50)", function()
-            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(50, 5, 50)
-                Notify("Teleportado para (50,5,50)")
-            end
-        end, y, Color3.fromRGB(200, 100, 0))
-    elseif tabName == "Misc" then
-        local y = 0.2
-        CreateToggle(page, "Kill Aura", false, function(s)
-            ToggleKillAura(s)
-            Notify("Kill Aura " .. (s and "ON" or "OFF"))
         end, y)
         y = y + 0.12
-        CreateSlider(page, "Alcance Kill Aura", 5, 100, 30, function(v)
-            KillAuraRange = v
+
+        -- Fly
+        CreateToggle(page, "Fly (Voo)", false, function(state)
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                local fly = Instance.new("BoolValue")
+                fly.Name = "IsFlying"
+                fly.Parent = char
+                if state then
+                    local bodyGyro = Instance.new("BodyGyro")
+                    local bodyVelocity = Instance.new("BodyVelocity")
+                    bodyGyro.P = 9e4
+                    bodyGyro.D = 400
+                    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    bodyGyro.Parent = char.HumanoidRootPart
+                    bodyVelocity.Parent = char.HumanoidRootPart
+                    fly.Value = true
+                    fly.Parent = char
+                    local flyCon
+                    flyCon = RunService.Heartbeat:Connect(function()
+                        if not state or not char or not char.Parent then
+                            flyCon:Disconnect()
+                            return
+                        end
+                        local cam = workspace.CurrentCamera
+                        local move = Vector3.new()
+                        if UIS:IsKeyDown(Enum.KeyCode.W) then move = move + cam.CFrame.LookVector * 50 end
+                        if UIS:IsKeyDown(Enum.KeyCode.S) then move = move - cam.CFrame.LookVector * 50 end
+                        if UIS:IsKeyDown(Enum.KeyCode.A) then move = move - cam.CFrame.RightVector * 50 end
+                        if UIS:IsKeyDown(Enum.KeyCode.D) then move = move + cam.CFrame.RightVector * 50 end
+                        if UIS:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, 50, 0) end
+                        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then move = move - Vector3.new(0, 50, 0) end
+                        bodyVelocity.Velocity = move
+                        bodyGyro.CFrame = cam.CFrame
+                    end)
+                    char:WaitForChild("IsFlying").Changed:Connect(function()
+                        if not char.IsFlying.Value then
+                            bodyGyro:Destroy()
+                            bodyVelocity:Destroy()
+                            fly:Destroy()
+                            if flyCon then flyCon:Disconnect() end
+                        end
+                    end)
+                else
+                    if char:FindFirstChild("IsFlying") then
+                        char.IsFlying.Value = false
+                    end
+                end
+            end
         end, y)
         y = y + 0.12
-        CreateButton(page, "Matar Todos os Jogadores", function()
+
+        -- Sliders
+        CreateSlider(page, "WalkSpeed", 16, 100, 16, function(val)
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = val
+            end
+        end, y)
+        y = y + 0.14
+
+        CreateSlider(page, "JumpPower", 50, 200, 50, function(val)
+            local char = Player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.JumpPower = val
+            end
+        end, y)
+    end
+
+    -- ========== ABA COMBATE ==========
+    if tabName == "Combate" then
+        local y = yOffset
+        -- Kill All
+        CreateButton(page, "💀 Matar Todos", function()
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Humanoid") then
                     plr.Character.Humanoid.Health = 0
                 end
             end
-            Notify("Todos os jogadores foram mortos!")
-        end, y, Color3.fromRGB(255, 0, 0))
-        y = y + 0.08
-        CreateButton(page, "Resetar Personagem", function()
-            Player.Character:BreakJoints()
-            Notify("Personagem resetado")
-        end, y, Color3.fromRGB(255, 200, 0))
-        y = y + 0.08
-        CreateButton(page, "Invisibilidade (Bypass)", function()
-            local char = Player.Character
-            if char then
-                for _, part in ipairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.Transparency = 1
+            Notify("💀 Todos os inimigos eliminados!", 2, Color3.fromRGB(255,0,0))
+        end, y, Color3.fromRGB(200,50,50))
+        y = y + 0.12
+
+        CreateButton(page, "🎯 Matar Mais Próximo", function()
+            local nearest = nil
+            local dist = math.huge
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local d = (plr.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+                    if d < dist then
+                        dist = d
+                        nearest = plr
                     end
                 end
-                Notify("Invisível!")
             end
-        end, y, Color3.fromRGB(0, 200, 255))
-    elseif tabName == "Admin" then
-        local y = 0.2
-        CreateButton(page, "Infinite Yield (comando)", function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-            Notify("Infinite Yield carregado!")
-        end, y, Color3.fromRGB(200, 0, 200))
-        y = y + 0.08
-        CreateButton(page, "CMD-X (comando)", function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source"))()
-            Notify("CMD-X carregado!")
-        end, y, Color3.fromRGB(0, 200, 200))
-        y = y + 0.08
-        CreateButton(page, "Dex Explorer (ver objetos)", function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
-            Notify("Dex carregado!")
-        end, y, Color3.fromRGB(255, 200, 0))
-        y = y + 0.08
-        CreateButton(page, "Remote Spy", function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/remotespy/main/remotespy.lua"))()
-            Notify("Remote Spy carregado!")
-        end, y, Color3.fromRGB(0, 100, 255))
-    elseif tabName == "Sobre" then
+            if nearest and nearest.Character and nearest.Character:FindFirstChild("Humanoid") then
+                nearest.Character.Humanoid.Health = 0
+                Notify("🎯 Alvo eliminado!", 2, Color3.fromRGB(255,200,0))
+            else
+                Notify("❌ Nenhum alvo encontrado!", 2, Color3.fromRGB(255,0,0))
+            end
+        end, y, Color3.fromRGB(200,150,0))
+        y = y + 0.12
+
+        -- Aimbot simples (apenas mira)
+        CreateToggle(page, "Aimbot (mirar)", false, function(state)
+            -- Implementação básica: mira no inimigo mais próximo
+            local aimCon
+            if state then
+                aimCon = RunService.Heartbeat:Connect(function()
+                    local nearest = nil
+                    local dist = math.huge
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                            local d = (plr.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+                            if d < dist and d < 200 then
+                                dist = d
+                                nearest = plr
+                            end
+                        end
+                    end
+                    if nearest and nearest.Character and nearest.Character:FindFirstChild("HumanoidRootPart") then
+                        local target = nearest.Character.HumanoidRootPart.Position + Vector3.new(0, 4, 0)
+                        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target)
+                    end
+                end)
+            else
+                if aimCon then aimCon:Disconnect() end
+            end
+        end, y)
+        y = y + 0.12
+
+        -- God Mode para todos (team)
+        CreateToggle(page, "Deus para Time", false, function(state)
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr.Team == Player.Team then
+                    local char = plr.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        if state then
+                            char.Humanoid.MaxHealth = 9e9
+                            char.Humanoid.Health = 9e9
+                        else
+                            char.Humanoid.MaxHealth = 100
+                            char.Humanoid.Health = 100
+                        end
+                    end
+                end
+            end
+        end, y)
+    end
+
+    -- ========== ABA TELEPORTES ==========
+    if tabName == "Teleportes" then
+        local y = yOffset
+        local teleports = {
+            {"🏠 Spawn", Vector3.new(0, 5, 0)},
+            {"🏪 Loja", Vector3.new(100, 5, 100)},
+            {"⚔️ Arena", Vector3.new(-150, 5, -150)},
+            {"🌳 Parque", Vector3.new(200, 5, 200)},
+            {"🏖️ Praia", Vector3.new(-200, 5, 200)},
+        }
+        for _, data in ipairs(teleports) do
+            CreateButton(page, data[1], function()
+                if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(data[2])
+                end
+            end, y, Color3.fromRGB(70,150,255))
+            y = y + 0.12
+        end
+        -- Teleport para posição customizada (slider de coordenadas?)
+        -- Vou colocar um botão para teleportar para a posição do mouse
+        CreateButton(page, "📍 Teleportar para Mouse", function()
+            local mouse = Player:GetMouse()
+            if mouse and mouse.Hit then
+                if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0,3,0))
+                end
+            end
+        end, y, Color3.fromRGB(255,200,100))
+    end
+
+    -- ========== ABA VISUAIS ==========
+    if tabName == "Visuais" then
+        local y = yOffset
+        -- ESP simples (nome e caixa)
+        CreateToggle(page, "ESP (nome)", false, function(state)
+            -- Implementação simples: cria billboards em todos os jogadores
+            if state then
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= Player then
+                        local char = plr.Character
+                        if char then
+                            local bbg = Instance.new("BillboardGui")
+                            bbg.Name = "ESP_Name"
+                            bbg.Parent = char.HumanoidRootPart
+                            bbg.Size = UDim2.new(0, 200, 0, 40)
+                            bbg.Adornee = char.HumanoidRootPart
+                            local label = Instance.new("TextLabel")
+                            label.Parent = bbg
+                            label.Size = UDim2.new(1,0,1,0)
+                            label.BackgroundTransparency = 1
+                            label.Text = plr.Name
+                            label.TextColor3 = plr.Team and plr.Team.TeamColor.Color or Color3.new(1,1,1)
+                            label.Font = Enum.Font.GothamBold
+                            label.TextSize = 18
+                            bbg.AlwaysOnTop = true
+                            plr.CharacterAdded:Connect(function(newChar)
+                                task.wait(0.5)
+                                if state then
+                                    local newBbg = bbg:Clone()
+                                    newBbg.Parent = newChar.HumanoidRootPart
+                                    newBbg.Adornee = newChar.HumanoidRootPart
+                                end
+                            end)
+                        end
+                    end
+                end
+            else
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr.Character then
+                        for _, child in ipairs(plr.Character:GetDescendants()) do
+                            if child:IsA("BillboardGui") and child.Name == "ESP_Name" then
+                                child:Destroy()
+                            end
+                        end
+                    end
+                end
+            end
+        end, y)
+        y = y + 0.12
+
+        -- Chams (cores vibrantes)
+        CreateToggle(page, "Chams (inimigos)", false, function(state)
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= Player and plr.Character then
+                    for _, part in ipairs(plr.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            if state then
+                                local highlight = Instance.new("Highlight")
+                                highlight.Parent = part
+                                highlight.FillColor = Color3.fromRGB(255,0,0)
+                                highlight.OutlineColor = Color3.fromRGB(255,255,255)
+                                highlight.FillTransparency = 0.3
+                            else
+                                for _, h in ipairs(part:GetChildren()) do
+                                    if h:IsA("Highlight") then h:Destroy() end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end, y)
+        y = y + 0.12
+
+        -- Alterar cor do céu
+        CreateSlider(page, "Fog (névoa)", 0, 100, 0, function(val)
+            game.Lighting.FogEnd = 100 + val * 10
+            game.Lighting.FogStart = 50 + val * 5
+        end, y)
+        y = y + 0.14
+
+        -- Tema claro/escuro
+        CreateToggle(page, "Tema Claro", LoadSetting("Tema Claro", false), function(state)
+            local bg = state and Color3.fromRGB(230,230,240) or CONFIG.BG
+            local sidebar = state and Color3.fromRGB(200,200,210) or CONFIG.SidebarBG
+            local top = state and Color3.fromRGB(210,210,220) or CONFIG.TopBG
+            local content = state and Color3.fromRGB(240,240,250) or CONFIG.ContentBG
+            local text = state and Color3.fromRGB(30,30,40) or CONFIG.TextColor
+            Main.BackgroundColor3 = bg
+            Sidebar.BackgroundColor3 = sidebar
+            Top.BackgroundColor3 = top
+            Content.BackgroundColor3 = content
+            -- Atualizar todos os textos
+            for _, page in ipairs(Content:GetChildren()) do
+                if page:IsA("Frame") then
+                    for _, child in ipairs(page:GetDescendants()) do
+                        if child:IsA("TextLabel") or child:IsA("TextButton") then
+                            if child ~= Title then
+                                child.TextColor3 = text
+                            end
+                        end
+                    end
+                end
+            end
+            Title.TextColor3 = state and Color3.fromRGB(50,50,80) or CONFIG.AccentLight
+            SaveSetting("Tema Claro", state)
+            Notify("Tema " .. (state and "Claro" or "Escuro") .. " aplicado!", 2)
+        end, y)
+    end
+
+    -- ========== ABA CONFIG ==========
+    if tabName == "Config" then
+        local y = yOffset
+        CreateButton(page, "🔄 Resetar Configurações", function()
+            Settings = {}
+            getgenv().PopcatSettings = {}
+            Notify("🔄 Configurações resetadas!", 2, Color3.fromRGB(255,200,0))
+        end, y, Color3.fromRGB(200,100,0))
+        y = y + 0.12
+
+        CreateButton(page, "💾 Salvar Configurações", function()
+            Notify("💾 Configurações salvas (automaticamente!)", 2, Color3.fromRGB(0,200,100))
+        end, y, Color3.fromRGB(0,150,100))
+        y = y + 0.12
+
         local label = Instance.new("TextLabel")
         label.Parent = page
         label.BackgroundTransparency = 1
-        label.Size = UDim2.new(0.9, 0, 0, 250)
-        label.Position = UDim2.new(0.05, 0, 0.2, 0)
-        label.Text = "🚀 Popcat Ultimate GUI v4.0\n\nCriado por enzinncatrip\n\nFeatures:\n• ESP (caixa, nome, distância)\n• Aimbot automático\n• Speed, Jump, Fly, Infinite Jump\n• Kill Aura e Kill All\n• Teleport para jogadores e coordenadas\n• Admin tools: Infinite Yield, CMD-X, Dex, Remote Spy\n• Interface moderna com notificações\n\nObrigado por usar! ❤️"
+        label.Size = UDim2.new(0.9, 0, 0, 120)
+        label.Position = UDim2.new(0.04, 0, y, 0)
+        label.Text = "⚙️ Configurações Gerais\n\n• Atalho: F1\n• Todas as preferências são salvas automaticamente\n• Se algo não funcionar, reinicie o jogo e recarregue a GUI"
         label.TextColor3 = CONFIG.TextColor
         label.Font = Enum.Font.Gotham
         label.TextSize = 18
+        label.TextWrapped = true
+        label.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    -- ========== ABA SOBRE ==========
+    if tabName == "Sobre" then
+        local label = Instance.new("TextLabel")
+        label.Parent = page
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(0.9, 0, 0, 300)
+        label.Position = UDim2.new(0.04, 0, 0.18, 0)
+        label.Text = "🐱 MEGA POPCAT GUI v4.0\n\nCriado por enzinncatrip\n\n💡 Funcionalidades:\n• Player: Deus, Pulo Infinito, No Clip, Fly, Sliders\n• Combate: Matar Todos, Matar Mais Próximo, Aimbot\n• Teleportes: Spawn, Loja, Arena, etc.\n• Visuais: ESP, Chams, Controle de Névoa, Tema\n• Config: Resetar/Salvar configurações\n\n📌 Obrigado por usar! ❤️"
+        label.TextColor3 = CONFIG.TextColor
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 19
         label.TextWrapped = true
         label.TextXAlignment = Enum.TextXAlignment.Left
     end
@@ -773,125 +867,122 @@ local function CreatePage(tabName)
     return page
 end
 
--- ============================================================
+-- ===================================================================
 --  CRIAÇÃO DOS BOTÕES DA SIDEBAR
--- ============================================================
+-- ===================================================================
+local SidebarTabs = {"Início", "Player", "Combate", "Teleportes", "Visuais", "Config", "Sobre"}
 local SidebarButtons = {}
 
-for _, tabName in ipairs(CONFIG.Tabs) do
+for _, tabName in ipairs(SidebarTabs) do
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
     btn.Size = UDim2.new(0.9, 0, 0, 44)
-    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,42)
     btn.Text = tabName
     btn.Font = Enum.Font.GothamBold
     btn.TextScaled = true
     btn.TextColor3 = CONFIG.AccentLight
     btn.AutoButtonColor = false
-    local bc = Instance.new("UICorner")
-    bc.Parent = btn
-    bc.CornerRadius = UDim.new(0, 10)
-    local bs = Instance.new("UIStroke")
-    bs.Parent = btn
-    bs.Color = CONFIG.Accent
-    bs.Thickness = 1.5
+    local corner = Instance.new("UICorner")
+    corner.Parent = btn
+    corner.CornerRadius = UDim.new(0, 10)
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = btn
+    stroke.Color = CONFIG.Accent
+    stroke.Thickness = 1.5
 
     local page = CreatePage(tabName)
     if tabName == CONFIG.DefaultTab then CurrentPage = page end
 
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = CONFIG.Accent, TextColor3 = Color3.new(1,1,1)}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = CONFIG.Accent,
+            TextColor3 = Color3.new(1,1,1)
+        }):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35,35,35), TextColor3 = CONFIG.AccentLight}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(35,35,42),
+            TextColor3 = CONFIG.AccentLight
+        }):Play()
     end)
+
     btn.MouseButton1Click:Connect(function()
         if CurrentPage and CurrentPage ~= page then
-            TweenService:Create(CurrentPage, TweenInfo.new(0.15), {BackgroundTransparency = 0.5, Visible = false}):Play()
+            TweenService:Create(CurrentPage, TweenInfo.new(0.15), {
+                BackgroundTransparency = 0.5,
+                Visible = false
+            }):Play()
         end
         page.Visible = true
         page.BackgroundTransparency = 0.5
-        TweenService:Create(page, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(page, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0
+        }):Play()
         CurrentPage = page
         Notify("📂 " .. tabName, 1.5)
     end)
+
     SidebarButtons[tabName] = btn
 end
 
--- ============================================================
+-- ===================================================================
 --  DRAG
--- ============================================================
-local drag = {active = false, startPos = nil, startMouse = nil}
+-- ===================================================================
+local drag = {active=false, startPos=nil, startMouse=nil}
 Top.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         drag.active = true
         drag.startPos = Main.Position
         drag.startMouse = input.Position
     end
 end)
 Top.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then drag.active = false end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        drag.active = false
+    end
 end)
 UIS.InputChanged:Connect(function(input)
-    if drag.active and input.UserInputType == Enum.UserInputType.MouseMovement then
+    if drag.active and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - drag.startMouse
-        Main.Position = UDim2.new(drag.startPos.X.Scale, drag.startPos.X.Offset + delta.X, drag.startPos.Y.Scale, drag.startPos.Y.Offset + delta.Y)
+        Main.Position = UDim2.new(
+            drag.startPos.X.Scale,
+            drag.startPos.X.Offset + delta.X,
+            drag.startPos.Y.Scale,
+            drag.startPos.Y.Offset + delta.Y
+        )
     end
 end)
 
--- ============================================================
---  F1 TOGGLE
--- ============================================================
-UIS.InputBegan:Connect(function(input, gp)
-    if gp then return end
+-- ===================================================================
+--  TECLA F1
+-- ===================================================================
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
     if input.KeyCode == CONFIG.ToggleKey then
         gui.Enabled = not gui.Enabled
-        if gui.Enabled then Notify("🐱 GUI reaberta!", 2) end
+        if gui.Enabled then
+            TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+                Position = UDim2.new(0.5, -CONFIG.Width/2, 0.5, -CONFIG.Height/2)
+            }):Play()
+            Notify("🐱 GUI reaberta!", 1.5)
+        end
     end
 end)
 
--- ============================================================
---  AIMBOT LOOP (opcional, ativado por toggle)
--- ============================================================
--- Vamos adicionar um toggle de Aimbot na aba Player
--- (Adicionar após criar a página Player)
--- Mas para não perder a estrutura, faremos após a criação das páginas
-
--- Adicionar Aimbot toggle na página Player (já criada)
--- Vamos modificar a página Player para incluir Aimbot
-local PlayerPage = Pages["Player"]
-if PlayerPage then
-    local y = 0.75 -- ajustar
-    CreateToggle(PlayerPage, "Aimbot (automático)", false, function(s)
-        AimbotEnabled = s
-        Notify("Aimbot " .. (s and "ON" or "OFF"))
-        if s then
-            local conn
-            conn = RunService.Heartbeat:Connect(function()
-                if not AimbotEnabled then conn:Disconnect(); return end
-                AimbotLoop()
-            end)
-        end
-    end, y)
-    y = y + 0.12
-    CreateSlider(PlayerPage, "Sensibilidade Aimbot", 1, 20, 5, function(v)
-        AimbotSensitivity = v
-    end, y)
-end
-
--- ============================================================
---  GLOW
--- ============================================================
+-- ===================================================================
+--  GLOW DINÂMICO
+-- ===================================================================
 RunService.Heartbeat:Connect(function()
-    local hue = (tick()*0.05)%1
-    MainStroke.Color = Color3.fromHSV(0.9, 0.65, 1)
-    MainStroke.Thickness = 3 + math.sin(tick()*3)*0.8
+    local hue = (tick() * 0.04) % 1
+    local color = Color3.fromHSV(0.9, 0.65, 1)
+    MainStroke.Color = color
+    MainStroke.Thickness = 3 + math.sin(tick() * 3) * 0.8
 end)
 
--- ============================================================
+-- ===================================================================
 --  INICIALIZAÇÃO
--- ============================================================
--- Garantir que a página padrão seja visível
+-- ===================================================================
 for _, child in ipairs(Content:GetChildren()) do
     if child:IsA("Frame") then
         child.Visible = (child.Name == CONFIG.DefaultTab)
@@ -899,6 +990,6 @@ for _, child in ipairs(Content:GetChildren()) do
     end
 end
 
-Notify("🚀 Popcat Ultimate GUI carregada! Pressione F1 para abrir/fechar.", 4)
-
-print("✅ Popcat Ultimate GUI v4.0 carregada com sucesso!")
+task.wait(0.5)
+Notify("🐱 MEGA POPCAT GUI v4.0 carregada com sucesso!\nPressione F1 para abrir/fechar.", 4, CONFIG.Accent)
+print("✅ MEGA POPCAT GUI v4.0 carregada - enzinncatrip")
